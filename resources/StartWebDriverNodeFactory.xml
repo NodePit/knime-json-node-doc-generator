@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode
+	icon="../icons/compass.png"
+	type="Source"
+	xmlns="http://knime.org/node/v2.8"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
+    <name>Start WebDriver</name>
+
+    <shortDescription>
+        Starts a Selenium subworkflow by creating a new WebDriver.
+    </shortDescription>
+
+    <fullDescription>
+        <intro>
+
+        <p>This node starts a <a href="http://www.seleniumhq.org">Selenium</a> subworkflow by opening a WebDriver.
+        A WebDriver serves as an interface to a web browser, and allows to open web pages, control the browser, and
+        extract data from it. The actual WebDriver to use must be configured using an upstream <i>WebDriver Factory</i>
+        node.</p>
+
+        <p>To automatically close the browser after your Selenium workflow is finished, you can terminate your workflow
+        with a <!-- node-ref="QuitWebDriver" --><i>Quit WebDriver</i><!-- /node-ref --> node.</p>
+
+        <p><b>Important note:</b> Because of the way Selenium works, KNIME workflows using the Selenium nodes behave
+        differently than you might be used from other nodes. As a Selenium workflow relies on a running browser instance,
+        it is for example not possible to re-run a saved KNIME workflow from in between after it has been loaded from disk.
+        In such cases, you need to re-run the workflow starting from the initial <i>Start WebDriver</i> node, as the
+        downstream Selenium node require a WebDriver instance for operation.</p>
+
+        </intro>
+        <tab name="Options">
+	        <option name="URL">The URL to load (optional)</option>
+        </tab>
+        <tab name="Timeouts">
+        	<option name="Page load timeout">The timeout for a page load to finish in milliseconds.</option>
+        	<option name="Script timeout">The timeout for asynchronous scripts in milliseconds.</option>
+        	<option name="Implicit wait">The amount of time to wait in case an element is searched in the DOM and
+        	it is not immediately available.</option>
+        </tab>
+    </fullDescription>
+
+    <ports>
+    	<inPort index="0" name="WebDriver Factory">A configured factory which is used for creating the WebDrivers</inPort>
+        <outPort index="0" name="WebDriver">A table with one row and column providing the WebDriver</outPort>
+    </ports>
+</knimeNode>

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode 
+	icon="../icons/node-magnifier.png" 
+	type="Manipulator" 
+	xmlns="http://knime.org/node/v3.1" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="http://knime.org/node/v3.1 http://knime.org/node/v3.1.xsd">
+    <name>Find Elements</name>
+    
+    <shortDescription>
+        Find WebElements.
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+        
+        <p>Extracts WebElements based on different criteria. The input can either be a WebDriver (representing a browser's window), 
+        or a WebElement (a subpart of the window). The following search criteria are available:</p>
+        
+        <table>
+        	<tr>
+	        	<th>Find by</th>
+	        	<th>Explanation</th>
+        	</tr>
+        	<tr>
+	        	<td>className</td>
+	        	<td>Finds elements based on their <tt>class</tt> attributes. In case an element 
+	        	has multiple class values assigned, matching a single value is sufficient.</td>
+        	</tr>
+        	<tr>
+	        	<td>cssSelector</td>
+	        	<td>Finds elements based on a <a href="http://www.w3.org/TR/css3-selectors/">
+        		CSS selector</a> expression.</td>
+        	</tr>
+        	<tr>
+	        	<td>id</td>
+	        	<td>Finds an element based in its <tt>id</tt> attribute.</td>
+        	</tr>
+        	<tr>
+	        	<td>linkText</td>
+	        	<td>Finds links through an exact match of their text.</td>
+        	</tr>
+        	<tr>
+	        	<td>name</td>
+	        	<td>Finds elements based on their <tt>name</tt> attributes.</td>
+        	</tr>
+        	<tr>
+	        	<td>partialLinkText</td>
+	        	<td>Finds links by a partial match of the given text.</td>
+        	</tr>
+        	<tr>
+	        	<td>tagName</td>
+	        	<td>Finds elements based on their tag names.</td>
+        	</tr>
+        	<tr>
+	        	<td>xpath</td>
+	        	<td>Finds elements based on an <a href="http://www.w3.org/TR/xpath20/">XPath</a> expression.</td>
+        	</tr>
+        </table>
+        
+        <p>For each extracted WebElement a new row is added to the output table.</p> 
+        
+        <p>Note that you cannot only search <i>within</i> the given input, but also navigate the entire DOM tree.
+        For example, you can use the XPath query <tt>..</tt> to find a WebElement's parent.</p>
+        
+        <p>In case you need to extract an element which is not immediately available on the page,
+        consider specifying an <i>Implicit wait</i> within the <i>Start WebDriver</i>'s Timeouts options.</p> 
+        
+        </intro>
+        
+        <option name="Input">The input column providing the starting point where to search.</option>
+        <option name="Find by">The search criteria (see above).</option>
+        <option name="Query">The query.</option>
+        <option name="Extract only first match">If enabled, extract only first match per input row instead of all.</option>
+        <option name="Append additional WebElement information">If enabled, additional columns
+        	with the WebElement's properties are appended (tag name, text content, selected, enabled, displayed state,
+        	position and size). This may (1) slow down extraction or (2) not be supported by specific WebDriver implementations,
+        	in latter case MissingValues will be returned.</option>
+       	<option name="Explicit wait">The amount of time to wait in case elements are searched and are not immediately available.</option>
+       	<option name="Catch exceptions">Do not fail the node's execution in case an exception is encountered (typically, in case the
+       		explicit wait timeout was reached without finding an element).</option>
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="WebDriver or WebElements">
+        	Table with a column providing a WebDriver or WebElements in which to search</inPort>
+        <outPort index="0" name="WebElements">Table with the found WebElements 
+        (and optionally additional columns with more information)</outPort>
+    </ports>    
+</knimeNode>

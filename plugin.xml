@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?eclipse version="3.0"?>
+<plugin>
+  <extension id="JsonNodeDocumentationGenerator" point="org.eclipse.core.runtime.applications">
+    <application cardinality="singleton-global" thread="main" visible="true">
+      <run class="com.seleniumnodes.util.jsondocgenerator.JsonNodeDocuGenerator"/>
+    </application>
+  </extension>
+</plugin>
