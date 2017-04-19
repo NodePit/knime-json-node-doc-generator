@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: JSON node documentation generator
-Bundle-SymbolicName: json-node-doc-generator-knime;singleton:=true
+Bundle-SymbolicName: de.philippkatz.knime.jsondocgenerator;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: Philipp Katz; Selenium Nodes
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
@@ -9,5 +9,5 @@ Require-Bundle: org.eclipse.core.runtime;bundle-version="[3.6.0,4.0.0)",
  org.knime.workbench.core;bundle-version="[3.0.0,4.0.0)",
  org.knime.workbench.repository;bundle-version="[3.0.0,4.0.0)",
  com.google.gson;bundle-version="[2.3.1,3.0.0)",
- org.jodd.jodd-lagarto;bundle-version="[3.8.1,4.0.0)",
  org.junit;bundle-version="4.12.0"
+Bundle-ClassPath: ., lib/jodd-core.jar, lib/jodd-lagarto.jar, lib/jodd-log.jar
