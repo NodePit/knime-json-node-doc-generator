@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>de.philippkatz.knime.jsondocgenerator.tests</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <packaging>eclipse-test-plugin</packaging>
+
+  <parent>
+    <groupId>de.philippkatz.knime.jsondocgenerator</groupId>
+    <artifactId>de.philippkatz.knime.jsondocgenerator.parent</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <relativePath>../de.philippkatz.knime.jsondocgenerator.parent</relativePath>
+  </parent>
+
+</project>

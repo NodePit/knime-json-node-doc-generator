@@ -15,8 +15,8 @@
 
   <modules>
     <module>de.philippkatz.knime.jsondocgenerator</module>
-    <!-- <module>de.philippkatz.knime.jsondocgenerator.tests</module>
-    <module>de.philippkatz.knime.jsondocgenerator.feature</module>
+    <module>de.philippkatz.knime.jsondocgenerator.tests</module>
+    <!-- <module>de.philippkatz.knime.jsondocgenerator.feature</module>
     <module>de.philippkatz.knime.jsondocgenerator.update</module> -->
   </modules>
 
