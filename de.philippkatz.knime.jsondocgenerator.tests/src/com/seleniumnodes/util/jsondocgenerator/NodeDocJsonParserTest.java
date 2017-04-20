@@ -3,6 +3,7 @@ package com.seleniumnodes.util.jsondocgenerator;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.InputStream;
 import java.util.Objects;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -47,10 +48,12 @@ public class NodeDocJsonParserTest {
 
 	private static Document readDoc(String resourcePath) throws Exception {
 		Objects.requireNonNull(resourcePath, "resourcePath must not be null");
-		String filePath = NodeDocJsonParser.class.getResource(resourcePath).getFile();
-		DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
-		return documentBuilder.parse(filePath);
+		try (InputStream resourceStream = NodeDocJsonParserTest.class.getResourceAsStream(resourcePath)) {
+			Objects.requireNonNull(resourcePath, "resource for " + resourcePath + " not found");
+			DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+			return documentBuilder.parse(resourceStream);
+		}
 	}
 
 }
