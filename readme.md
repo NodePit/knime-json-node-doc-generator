@@ -23,11 +23,11 @@ Allowed options are:
 	-category category-path (e.g. /community) : Only nodes within the specified category path will be considered. If not specified '/' is used.
 ```
 
-This creates a JSON file in you home directory with the documentation for all
+This example creates a JSON file in you home directory with the documentation for all
 Selenium nodes:
 
 ```
-./Knime -nosplash -application de.philippkatz.knime.jsondocgen.application.JsonNodeDocumentationGenerator -destination ~ -category /selenium
+$ ./Knime -nosplash -application de.philippkatz.knime.jsondocgen.application.JsonNodeDocumentationGenerator -destination ~ -category /selenium
 ```
 
 The generated JSON file’s structure looks as follows:
