@@ -86,9 +86,9 @@ public class JsonNodeDocuGenerator implements IApplication {
         System.err.println("\t-destination dir : directory where "
                 + "the result should be written to (directory must exist)");
         System.err
-                .println("\t-plugin plugin-id : Only nodes of the specified plugin will be considered. If not all available plugins will be processed.\n");
+                .println("\t-plugin plugin-id : Only nodes of the specified plugin will be considered. If not all available plugins will be processed.");
         System.err
-                .println("\t-category category-path (e.g. /community) : Only nodes within the specified category path will be considered. If not specified '/' is used.\n");
+                .println("\t-category category-path (e.g. /community) : Only nodes within the specified category path will be considered. If not specified '/' is used.");
 
     }
 
