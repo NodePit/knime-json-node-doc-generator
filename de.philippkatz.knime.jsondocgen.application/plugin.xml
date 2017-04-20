@@ -3,7 +3,7 @@
 <plugin>
   <extension id="JsonNodeDocumentationGenerator" point="org.eclipse.core.runtime.applications">
     <application cardinality="singleton-global" thread="main" visible="true">
-      <run class="com.seleniumnodes.util.jsondocgenerator.JsonNodeDocuGenerator"/>
+      <run class="de.philippkatz.knime.jsondocgen.JsonNodeDocuGenerator"/>
     </application>
   </extension>
 </plugin>

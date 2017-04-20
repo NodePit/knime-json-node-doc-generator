@@ -1,4 +1,4 @@
-package com.seleniumnodes.util.jsondocgenerator;
+package de.philippkatz.knime.jsondocgen;
 
 import java.util.ArrayList;
 import java.util.List;

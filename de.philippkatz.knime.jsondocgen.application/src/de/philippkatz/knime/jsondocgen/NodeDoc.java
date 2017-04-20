@@ -1,4 +1,4 @@
-package com.seleniumnodes.util.jsondocgenerator;
+package de.philippkatz.knime.jsondocgen;
 
 import java.util.List;
 
@@ -42,7 +42,7 @@ public final class NodeDoc {
 	List<Port> outPorts;
 	List<View> views;
 	NodeDoc(){ /* package private */ }
-	
+
 	public String toJson() {
 		Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 		return gson.toJson(this);

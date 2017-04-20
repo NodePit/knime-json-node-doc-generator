@@ -45,7 +45,7 @@
  * History
  *   Oct 10, 2013 (hornm): created
  */
-package com.seleniumnodes.util.jsondocgenerator;
+package de.philippkatz.knime.jsondocgen;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -66,7 +66,7 @@ import org.w3c.dom.Element;
 
 /**
  * Creates a summary of the node descriptions of a all available KNIME nodes in JSON format.
- * 
+ *
  * This class is based on org.knime.workbench.repository.util.NodeDocuGenerator
  *
  * @author Martin Horn, University of Konstanz
@@ -98,7 +98,7 @@ public class JsonNodeDocuGenerator implements IApplication {
     private String m_pluginId = null;
 
     private String m_catPath = "/";
-    
+
     private CategoryDoc rootCategoryDoc;
 
     /**
@@ -190,7 +190,7 @@ public class JsonNodeDocuGenerator implements IApplication {
         // recursively generate the node reference and the node description
         // pages
         generate(m_directory, root, null, rootCategoryDoc);
-        
+
         String resultJson = rootCategoryDoc.toJson();
         File resultFile = new File(m_directory, "nodeDocumentation.json");
         System.out.println("Writing result to " + resultFile);
@@ -229,9 +229,9 @@ public class JsonNodeDocuGenerator implements IApplication {
                     return false;
                 }
             }
-            
+
 			// create the JSON entry from the node XML description
-			Element xmlDescription = ((NodeTemplate) current).createFactoryInstance().getXMLDescription();    
+			Element xmlDescription = ((NodeTemplate) current).createFactoryInstance().getXMLDescription();
 			NodeDoc nodeDoc = NodeDocJsonParser.parse(xmlDescription, current.getID());
 			parentCategory.addNode(nodeDoc);
 
@@ -239,7 +239,7 @@ public class JsonNodeDocuGenerator implements IApplication {
         } else if (current instanceof Category || current instanceof Root) {
             System.out.println("Processing category " + getPath(current));
             IRepositoryObject[] repoObjs = ((IContainerObject)current).getChildren();
-            
+
             CategoryDoc newCategory = parentCategory;
 
             if (current instanceof Category) {
@@ -250,11 +250,11 @@ public class JsonNodeDocuGenerator implements IApplication {
             for (IRepositoryObject repoObj : repoObjs) {
                 hasChildren = hasChildren | generate(directory, repoObj, current, newCategory);
             }
-            
+
             if (hasChildren && current instanceof Category) {
             	parentCategory.addChild(newCategory);
             }
-            
+
             return hasChildren;
 
         } else {

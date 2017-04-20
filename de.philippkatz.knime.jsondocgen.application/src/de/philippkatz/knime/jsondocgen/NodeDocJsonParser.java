@@ -1,4 +1,4 @@
-package com.seleniumnodes.util.jsondocgenerator;
+package de.philippkatz.knime.jsondocgen;
 
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -14,11 +14,10 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Node;
 
-import com.seleniumnodes.util.jsondocgenerator.NodeDoc.Option;
-import com.seleniumnodes.util.jsondocgenerator.NodeDoc.OptionTab;
-import com.seleniumnodes.util.jsondocgenerator.NodeDoc.Port;
-import com.seleniumnodes.util.jsondocgenerator.NodeDoc.View;
-
+import de.philippkatz.knime.jsondocgen.NodeDoc.Option;
+import de.philippkatz.knime.jsondocgen.NodeDoc.OptionTab;
+import de.philippkatz.knime.jsondocgen.NodeDoc.Port;
+import de.philippkatz.knime.jsondocgen.NodeDoc.View;
 import jodd.jerry.Jerry;
 import jodd.jerry.Jerry.JerryParser;
 import jodd.lagarto.dom.LagartoDOMBuilder;

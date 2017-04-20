@@ -1,4 +1,4 @@
-package com.seleniumnodes.util.jsondocgenerator;
+package de.philippkatz.knime.jsondocgen;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -11,6 +11,9 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.junit.Test;
 import org.w3c.dom.Document;
+
+import de.philippkatz.knime.jsondocgen.NodeDoc;
+import de.philippkatz.knime.jsondocgen.NodeDocJsonParser;
 
 public class NodeDocJsonParserTest {
 	@Test

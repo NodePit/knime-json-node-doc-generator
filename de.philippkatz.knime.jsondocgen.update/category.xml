@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <description name="Update Site for JSON node documentation generator">
+      Update Site for JSON node documentation generator
+   </description>
+   <feature id="de.philippkatz.knime.jsondocgen.feature">
+      <category name="jsondocgen"/>
+   </feature>
+   <category-def name="jsondocgen" label="jsondocgen">
+      <description>
+         This category contains the JSON node documentation generator
+      </description>
+   </category-def>
+</site>
