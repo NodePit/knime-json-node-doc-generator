@@ -57,6 +57,8 @@ import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
 import org.eclipse.swt.widgets.Display;
 import org.knime.workbench.repository.RepositoryManager;
+import org.knime.workbench.repository.model.AbstractContainerObject;
+import org.knime.workbench.repository.model.AbstractRepositoryObject;
 import org.knime.workbench.repository.model.Category;
 import org.knime.workbench.repository.model.IContainerObject;
 import org.knime.workbench.repository.model.IRepositoryObject;
@@ -224,7 +226,7 @@ public class JsonNodeDocuGenerator implements IApplication {
             // skip if not in a sub-category of the category specified
             // as argument
             if (m_catPath.length() > 0) {
-                String catIdentifier = getCategoryIdentifier((Category)parent);
+                String catIdentifier = getCategoryIdentifier(parent);
                 if (!catIdentifier.startsWith(m_catPath)) {
                     return false;
                 }
@@ -270,10 +272,10 @@ public class JsonNodeDocuGenerator implements IApplication {
      * Helper to compose the category names/identifier of the super-categories
      * and the current one
      */
-    private static String getCategoryIdentifier(final Category cat) {
+    private static String getCategoryIdentifier(final IRepositoryObject cat) {
         IContainerObject parent = cat.getParent();
         String identifier = cat.getID();
-        while (!(parent instanceof Root)) {
+        while (parent != null && !(parent instanceof Root)) {
             identifier = parent.getID() + "." + identifier;
             parent = parent.getParent();
         }
