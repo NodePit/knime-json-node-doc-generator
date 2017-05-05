@@ -23,7 +23,6 @@ public class NodeDocJsonParserTest {
 
 		assertEquals("Find Elements", description.name);
 		assertEquals("Find WebElements.", description.shortDescription);
-		assertTrue(description.intro.contains("<table class=\"table table-striped table-bordered\">"));
 
 		assertEquals(7, description.options.size());
 		assertEquals("Input", description.options.get(0).name);

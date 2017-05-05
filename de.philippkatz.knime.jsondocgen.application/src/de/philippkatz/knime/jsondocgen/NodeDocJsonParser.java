@@ -43,7 +43,7 @@ public final class NodeDocJsonParser {
 
 		nodeDoc.name = trim(jerry.$("knimeNode name").text());
 		nodeDoc.shortDescription = trim(jerry.$("knimeNode shortDescription").text());
-		nodeDoc.intro = trim(transformIntro(jerry.$("knimeNode fullDescription intro")).html());
+		nodeDoc.intro = trim(jerry.$("knimeNode fullDescription intro").html());
 		nodeDoc.identifier = nodeIdentifier;
 
 		// options are either children of fullDescription,
@@ -102,26 +102,8 @@ public final class NodeDocJsonParser {
 		return optionsJson;
 	}
 
-	private static Jerry transformIntro(Jerry intro) {
-		// add class="table table-striped table-bordered" to tables
-		intro.$("table").addClass("table", "table-striped", "table-bordered");
-
-		// TODO convert pseudo-links in comments to actual links
-		// e.g. <!-- node-ref="QuitWebDriver" -->Quit WebDriver<!-- /node-ref
-		// -->
-		// maybe see here for a solution:
-		// http://stackoverflow.com/questions/8118054/jquery-change-text-between-two-elements
-		/*
-		 * var comments = $('*', element).contents().filter(function() { return
-		 * this.nodeType === COMMENT_NODE; }).each(function() {
-		 * console.log(this.nodeValue.trim()); });
-		 */
-
-		return intro;
-	}
-
 	private static String trim(String string) {
-		return string != null ? string.replaceAll("\\s+", " ").trim() : null;
+		return string != null ? string.trim() : null;
 	}
 
 	private static List<Port> parsePorts(Jerry ports, boolean isInPort) {
