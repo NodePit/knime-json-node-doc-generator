@@ -1,11 +1,28 @@
 KNIME JSON Node Documentation Generator
 =======================================
 
+![Run status](https://api.shippable.com/projects/590caf4e50a8640700690ab1/badge?branch=master)
+
 Builds a JSON file containing KNIME node documentations, based on and similar to
 KNIME’s `org.knime.workbench.repository.NodeDocumentationGenerator`, but with a
 structured JSON file as a result which can be easily further processed, mined
 and integrated in different environments. Created for the [Selenium Nodes][1]
-website where we display the node documentation.
+website where we display the node documentation on [this][3] page.
+
+Installation
+------------
+
+The tool is available through the following software site:
+
+```
+http://philippkatz.de/knime/repository/jsondocgen
+```
+
+Open KNIME, go to **File → Preferences → Install/Update → Available Software
+Sites**, click on **Add…** and paste above’s URL. Save and close the preferences
+window, choose **File → Install KNIME Extensions…** and select the **JSON node
+documentation generator** in the list. Restart KNIME when promted to do so and
+follow the usage instructions below.
 
 Usage
 -----
@@ -81,9 +98,6 @@ Contributing
 Pull requests are very welcome. Feel free to discuss bugs or new features by
 opening a new [issue][2].
 
-[1]: https://seleniumnodes.com
-[2]: https://github.com/qqilihq/knime-json-node-doc-generator/issues
-
 License
 -------
 
@@ -92,3 +106,7 @@ License
 - - -
 
 Copyright (c) 2017 Philipp Katz
+
+[1]: https://seleniumnodes.com
+[2]: https://github.com/qqilihq/knime-json-node-doc-generator/issues
+[3]: https://seleniumnodes.com/docs
