@@ -17,5 +17,5 @@ build:
   ci:
     - if [ -d $HOME/.m2 ]; then du -sh $HOME/.m2; fi
     # only use -P uploadRepo when (1) on master branch, (2) no pull request
-    - if [ "$BRANCH" == "master" && "$IS_PULL_REQUEST" == false ] MAVEN_PROFILE="-P uploadRepo"
+    - if [ "$BRANCH" == "master" && "$IS_PULL_REQUEST" == false ]; then MAVEN_PROFILE="-P uploadRepo"; fi
     - mvn -V -B -s settings.xml clean install "$MAVEN_PROFILE"
