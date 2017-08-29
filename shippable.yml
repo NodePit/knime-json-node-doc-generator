@@ -15,5 +15,5 @@ build:
   cache_dir_list:
     - $HOME/.m2
   ci:
-    - du -sh $HOME/.m2
+    - [ -d $HOME/.m2 ] && du -sh $HOME/.m2
     - mvn -V -B -s settings.xml clean install -P uploadRepo
