@@ -29,10 +29,11 @@ public final class NodeDocJsonParser {
 	private NodeDocJsonParser() {
 		// only to be instantiated by Chuck Norris
 	}
-
-	public static NodeDoc parse(Node domNode, String nodeIdentifier) throws TransformerException {
+	
+	public static NodeDocBuilder parse(Node domNode, NodeDocBuilder builder) throws TransformerException {
 		Objects.requireNonNull(domNode, "document must not be null");
-
+		Objects.requireNonNull(builder, "builder must not be null");
+		
 		String xmlString = documentToString(domNode);
 
 		// explicitly enable XML mode: http://jodd.org/doc/jerry/#configuration
@@ -41,12 +42,9 @@ public final class NodeDocJsonParser {
 		domBuilder.enableXmlMode();
 		Jerry jerry = jerryParser.parse(xmlString);
 
-		NodeDocBuilder builder = new NodeDocBuilder();
-
 		builder.setName(trim(jerry.$("knimeNode name").text()));
 		builder.setShortDescription(trim(jerry.$("knimeNode shortDescription").text()));
 		builder.setIntro(trim(jerry.$("knimeNode fullDescription intro").html()));
-		builder.setIdentifier(nodeIdentifier);
 		builder.setIcon(jerry.$("knimeNode").attr("icon"));
 		builder.setType(jerry.$("knimeNode").attr("type"));
 		builder.setDeprecated(parseOptionalBoolean(jerry.$("knimeNode").attr("deprecated")));
@@ -85,8 +83,16 @@ public final class NodeDocJsonParser {
 			String name = interactiveView.attr("name");
 			String description = trim(interactiveView.html());
 			builder.setInteractiveView(new InteractiveView(name, description));
-		}
+		}		
+		
+		return builder;
+	}
 
+	public static NodeDoc parse(Node domNode, String nodeIdentifier) throws TransformerException {
+		Objects.requireNonNull(domNode, "document must not be null");
+		NodeDocBuilder builder = new NodeDocBuilder();
+		parse(domNode, builder);
+		builder.setIdentifier(nodeIdentifier);
 		return builder.build();
 
 	}

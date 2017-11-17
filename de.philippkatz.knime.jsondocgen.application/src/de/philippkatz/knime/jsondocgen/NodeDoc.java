@@ -26,6 +26,8 @@ public final class NodeDoc {
 		private String type;
 		private boolean deprecated;
 		private InteractiveView interactiveView;
+		private String contributingPlugin;
+		private String iconBase64;
 		public NodeDocBuilder setIdentifier(String identifier) {
 			this.identifier = identifier;
 			return this;
@@ -90,6 +92,14 @@ public final class NodeDoc {
 				views = new ArrayList<>();
 			}
 			views.add(view);
+			return this;
+		}
+		public NodeDocBuilder setContributingPlugin(String contributingPlugin) {
+			this.contributingPlugin = contributingPlugin;
+			return this;
+		}
+		public NodeDocBuilder setIconBase64(String iconBase64) {
+			this.iconBase64 = iconBase64;
 			return this;
 		}
 		public NodeDoc build() {
@@ -160,6 +170,8 @@ public final class NodeDoc {
 	final String type;
 	final boolean deprecated;
 	final InteractiveView interactiveView;
+	final String contributingPlugin;
+	final String iconBase64;
 
 	private NodeDoc(NodeDocBuilder builder) {
 		identifier = builder.identifier;
@@ -175,6 +187,8 @@ public final class NodeDoc {
 		type = builder.type;
 		deprecated = builder.deprecated;
 		interactiveView = builder.interactiveView;
+		contributingPlugin = builder.contributingPlugin;
+		iconBase64 = builder.iconBase64;
 	}
 
 	/**

@@ -21,7 +21,7 @@ public class NodeDocJsonParserTest {
 	@Test
 	public void parsing_XML_with_plain_options() throws Exception {
 		Document doc = readDoc("/FindElementsNodeFactory.xml");
-		NodeDoc description = NodeDocJsonParser.parse(doc, null);
+		NodeDoc description = NodeDocJsonParser.parse(doc, (String) null);
 		
 		assertEquals("../icons/node-magnifier.png",description.icon);
 		assertEquals("Manipulator",description.type);
@@ -52,7 +52,7 @@ public class NodeDocJsonParserTest {
 	@Test
 	public void parsing_XML_with_tab_options() throws Exception {
 		Document doc = readDoc("/StartWebDriverNodeFactory.xml");
-		NodeDoc description = NodeDocJsonParser.parse(doc, null);
+		NodeDoc description = NodeDocJsonParser.parse(doc, (String) null);
 		assertEquals(2, description.optionTabs.size());
 		assertEquals("Options", description.optionTabs.get(0).name);
 	}

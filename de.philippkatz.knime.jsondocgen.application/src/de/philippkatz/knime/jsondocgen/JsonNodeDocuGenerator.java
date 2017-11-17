@@ -47,14 +47,20 @@
  */
 package de.philippkatz.knime.jsondocgen;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.Base64;
 
 import javax.xml.transform.TransformerException;
 
 import org.apache.commons.io.IOUtils;
 import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.ImageLoader;
 import org.eclipse.swt.widgets.Display;
 import org.knime.workbench.repository.RepositoryManager;
 import org.knime.workbench.repository.model.Category;
@@ -63,6 +69,8 @@ import org.knime.workbench.repository.model.IRepositoryObject;
 import org.knime.workbench.repository.model.NodeTemplate;
 import org.knime.workbench.repository.model.Root;
 import org.w3c.dom.Element;
+
+import de.philippkatz.knime.jsondocgen.NodeDoc.NodeDocBuilder;
 
 /**
  * Creates a summary of the node descriptions of a all available KNIME nodes in JSON format.
@@ -231,9 +239,13 @@ public class JsonNodeDocuGenerator implements IApplication {
             }
 
 			// create the JSON entry from the node XML description
-			Element xmlDescription = ((NodeTemplate) current).createFactoryInstance().getXMLDescription();
-			NodeDoc nodeDoc = NodeDocJsonParser.parse(xmlDescription, current.getID());
-			parentCategory.addNode(nodeDoc);
+			NodeTemplate nodeTemplate = (NodeTemplate) current;
+			Element xmlDescription = nodeTemplate.createFactoryInstance().getXMLDescription();
+			NodeDocBuilder builder = NodeDocJsonParser.parse(xmlDescription, new NodeDocBuilder());
+			builder.setIdentifier(current.getID());
+			builder.setContributingPlugin(current.getContributingPlugin());
+			builder.setIconBase64(getImageBase64(nodeTemplate.getIcon()));
+			parentCategory.addNode(builder.build());
 
             return true;
         } else if (current instanceof Category || current instanceof Root) {
@@ -265,6 +277,14 @@ public class JsonNodeDocuGenerator implements IApplication {
         }
 
     }
+
+	private static String getImageBase64(Image image) {
+		ImageLoader imageLoader = new ImageLoader();
+		imageLoader.data = new ImageData[] { image.getImageData() };
+		ByteArrayOutputStream stream = new ByteArrayOutputStream();
+		imageLoader.save(stream, SWT.IMAGE_PNG);
+		return new String(Base64.getEncoder().encode(stream.toByteArray()));
+	}
 
     /*
      * Helper to compose the category names/identifier of the super-categories
