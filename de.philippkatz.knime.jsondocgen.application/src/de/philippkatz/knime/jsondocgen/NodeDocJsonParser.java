@@ -58,10 +58,6 @@ public final class NodeDocJsonParser {
 			for (Jerry tab : tabs) {
 				OptionTab optionTab = new OptionTab();
 				optionTab.name = tab.attr("name");
-				Jerry description = tab.$("description");
-				if (description.length() > 0) {
-					optionTab.description = trim(description.text());
-				}
 				optionTab.options = parseOptions(tab.$("option"));
 				optionTabs.add(optionTab);
 			}

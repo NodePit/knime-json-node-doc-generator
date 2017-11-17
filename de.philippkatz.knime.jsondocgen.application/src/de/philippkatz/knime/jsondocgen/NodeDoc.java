@@ -9,7 +9,6 @@ import com.google.gson.GsonBuilder;
 public final class NodeDoc {
 	public static final class OptionTab {
 		String name;
-		String description;
 		List<Option> options;
 		OptionTab() { /* package private */ }
 	}
