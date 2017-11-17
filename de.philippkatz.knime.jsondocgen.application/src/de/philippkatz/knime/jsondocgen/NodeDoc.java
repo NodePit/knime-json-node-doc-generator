@@ -16,6 +16,7 @@ public final class NodeDoc {
 	public static final class Option {
 		String name;
 		String description;
+		boolean optional;
 		Option() { /* package private */ }
 	}
 	public static final class Port {
@@ -32,6 +33,10 @@ public final class NodeDoc {
 		String description;
 		View() { /* package private */ }
 	}
+	public static final class InteractiveView {
+		String name;
+		String description;
+	}
 	String identifier;
 	String name;
 	String shortDescription;
@@ -41,6 +46,10 @@ public final class NodeDoc {
 	List<Port> inPorts;
 	List<Port> outPorts;
 	List<View> views;
+	String icon;
+	String type;
+	boolean deprecated;
+	InteractiveView interactiveView;
 	NodeDoc(){ /* package private */ }
 
 	public String toJson() {

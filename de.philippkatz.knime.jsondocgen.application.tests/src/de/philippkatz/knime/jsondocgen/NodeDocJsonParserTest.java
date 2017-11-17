@@ -1,6 +1,8 @@
 package de.philippkatz.knime.jsondocgen;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.InputStream;
@@ -20,6 +22,10 @@ public class NodeDocJsonParserTest {
 	public void parsing_XML_with_plain_options() throws Exception {
 		Document doc = readDoc("/FindElementsNodeFactory.xml");
 		NodeDoc description = NodeDocJsonParser.parse(doc, null);
+		
+		assertEquals("../icons/node-magnifier.png",description.icon);
+		assertEquals("Manipulator",description.type);
+		assertEquals(false, description.deprecated);
 
 		assertEquals("Find Elements", description.name);
 		assertEquals("Find WebElements.", description.shortDescription);
@@ -28,6 +34,7 @@ public class NodeDocJsonParserTest {
 		assertEquals("Input", description.options.get(0).name);
 		assertEquals("The input column providing the starting point where to search.",
 				description.options.get(0).description);
+		assertFalse(description.options.get(0).optional);
 
 		assertEquals(1, description.inPorts.size());
 		assertEquals(0, description.inPorts.get(0).index);
@@ -38,6 +45,8 @@ public class NodeDocJsonParserTest {
 		assertEquals(1, description.outPorts.size());
 
 		assertTrue(description.toJson().replaceAll("\\s+", " ").startsWith("{ \"name\": \"Find Elements\""));
+		
+		assertNull(description.interactiveView);
 	}
 
 	@Test

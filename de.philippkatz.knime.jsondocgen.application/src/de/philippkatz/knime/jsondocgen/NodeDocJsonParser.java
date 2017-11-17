@@ -14,6 +14,7 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Node;
 
+import de.philippkatz.knime.jsondocgen.NodeDoc.InteractiveView;
 import de.philippkatz.knime.jsondocgen.NodeDoc.Option;
 import de.philippkatz.knime.jsondocgen.NodeDoc.OptionTab;
 import de.philippkatz.knime.jsondocgen.NodeDoc.Port;
@@ -45,6 +46,9 @@ public final class NodeDocJsonParser {
 		nodeDoc.shortDescription = trim(jerry.$("knimeNode shortDescription").text());
 		nodeDoc.intro = trim(jerry.$("knimeNode fullDescription intro").html());
 		nodeDoc.identifier = nodeIdentifier;
+		nodeDoc.icon = jerry.$("knimeNode").attr("icon");
+		nodeDoc.type = jerry.$("knimeNode").attr("type");
+		nodeDoc.deprecated = parseOptionalBoolean(jerry.$("knimeNode").attr("deprecated"));
 
 		// options are either children of fullDescription,
 		// or nested within tab elements
@@ -83,6 +87,16 @@ public final class NodeDocJsonParser {
 			}
 			nodeDoc.views = viewObjects;
 		}
+		
+		// interactive view
+		Jerry interactiveView = jerry.$("knimeNode interactiveView");
+		if (interactiveView.size() > 0) {
+			InteractiveView interactiveViewObject = new InteractiveView();
+			interactiveViewObject.name = interactiveView.attr("name");
+			interactiveViewObject.description = trim(interactiveView.html());
+			nodeDoc.interactiveView = interactiveViewObject;
+		}
+		
 		return nodeDoc;
 
 	}
@@ -97,6 +111,7 @@ public final class NodeDocJsonParser {
 			Option optionObject = new Option();
 			optionObject.name = option.attr("name");
 			optionObject.description = trim(option.html());
+			optionObject.optional = parseOptionalBoolean(option.attr("optional"));
 			optionsJson.add(optionObject);
 		}
 		return optionsJson;
@@ -114,7 +129,7 @@ public final class NodeDocJsonParser {
 			portObject.name = port.attr("name");
 			portObject.description = trim(port.html());
 			if (isInPort) {
-				portObject.optional = Boolean.valueOf(Optional.ofNullable(port.attr("optional")).orElse("false"));
+				portObject.optional = parseOptionalBoolean(port.attr("optional"));
 			}
 			portsJson.add(portObject);
 		}
@@ -127,6 +142,18 @@ public final class NodeDocJsonParser {
 		StringWriter writer = new StringWriter();
 		transformer.transform(new DOMSource(domNode), new StreamResult(writer));
 		return writer.getBuffer().toString();
+	}
+	
+	/**
+	 * Parse ("true" | "false" | null) to a boolean.
+	 * 
+	 * @param string
+	 *            The string.
+	 * @return <code>true</code> in case the string was "true", <code>false</code>
+	 *         in case the string was "false" or <code>null</code>.
+	 */
+	private static boolean parseOptionalBoolean(String string) {
+		return Boolean.valueOf(Optional.ofNullable(string).orElse("false"));
 	}
 
 }
