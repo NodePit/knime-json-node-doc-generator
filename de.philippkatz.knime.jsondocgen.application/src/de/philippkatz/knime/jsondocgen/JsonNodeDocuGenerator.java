@@ -50,6 +50,7 @@ package de.philippkatz.knime.jsondocgen;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.lang.reflect.Method;
 import java.util.Base64;
 
 import javax.xml.transform.TransformerException;
@@ -62,6 +63,10 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.ImageLoader;
 import org.eclipse.swt.widgets.Display;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeModel;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.streamable.PartitionInfo;
 import org.knime.workbench.repository.RepositoryManager;
 import org.knime.workbench.repository.model.Category;
 import org.knime.workbench.repository.model.IContainerObject;
@@ -245,6 +250,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 			builder.setIdentifier(current.getID());
 			builder.setContributingPlugin(current.getContributingPlugin());
 			builder.setIconBase64(getImageBase64(nodeTemplate.getIcon()));
+			builder.setStreamable(isStreamable(nodeTemplate));
 			parentCategory.addNode(builder.build());
 
             return true;
@@ -284,6 +290,28 @@ public class JsonNodeDocuGenerator implements IApplication {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		imageLoader.save(stream, SWT.IMAGE_PNG);
 		return new String(Base64.getEncoder().encode(stream.toByteArray()));
+	}
+
+	/**
+	 * This code is taken from
+	 * org.knime.workbench.repository.view.AbstractRepositoryView.enrichWithAdditionalInfo(IRepositoryObject,
+	 * IProgressMonitor, boolean)
+	 */
+	private static boolean isStreamable(NodeTemplate nodeTemplate) {
+        try {
+            NodeFactory<? extends NodeModel> nf = nodeTemplate.createFactoryInstance();
+            NodeModel nm = nf.createNodeModel();
+            //check whether the current node model overrides the #createStreamableOperator-method
+            Method m = nm.getClass().getMethod("createStreamableOperator", PartitionInfo.class,
+                PortObjectSpec[].class);
+            if (m.getDeclaringClass() != NodeModel.class) {
+            		//method has been overriden -> node is probably streamable or distributable
+            		return true;
+            }
+        } catch (Throwable t) {
+            System.out.println("Unable to instantiate the node " + nodeTemplate.getFactory().getName() + ": " + t.getMessage());
+        }
+        return false;
 	}
 
     /*
