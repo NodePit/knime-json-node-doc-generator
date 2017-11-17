@@ -51,6 +51,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.lang.reflect.Method;
+import java.nio.charset.Charset;
 import java.util.Base64;
 
 import javax.xml.transform.TransformerException;
@@ -75,10 +76,12 @@ import org.knime.workbench.repository.model.NodeTemplate;
 import org.knime.workbench.repository.model.Root;
 import org.w3c.dom.Element;
 
+import de.philippkatz.knime.jsondocgen.CategoryDoc.CategoryDocBuilder;
 import de.philippkatz.knime.jsondocgen.NodeDoc.NodeDocBuilder;
 
 /**
- * Creates a summary of the node descriptions of a all available KNIME nodes in JSON format.
+ * Creates a summary of the node descriptions of a all available KNIME nodes in
+ * JSON format.
  *
  * This class is based on org.knime.workbench.repository.util.NodeDocuGenerator
  *
@@ -87,161 +90,169 @@ import de.philippkatz.knime.jsondocgen.NodeDoc.NodeDocBuilder;
  */
 public class JsonNodeDocuGenerator implements IApplication {
 
-    private static final String DESTINATION_ARG = "-destination";
+	private static final String DESTINATION_ARG = "-destination";
 
-    private static final String CATEGORY_ARG = "-category";
+	private static final String CATEGORY_ARG = "-category";
 
-    private static final String PLUGIN_ARG = "-plugin";
+	private static final String PLUGIN_ARG = "-plugin";
 
-    private static void printUsage() {
-        System.err.println("Usage: NodeDocuGenerator options");
-        System.err.println("Allowed options are:");
-        System.err.println("\t-destination dir : directory where "
-                + "the result should be written to (directory must exist)");
-        System.err
-                .println("\t-plugin plugin-id : Only nodes of the specified plugin will be considered. If not all available plugins will be processed.");
-        System.err
-                .println("\t-category category-path (e.g. /community) : Only nodes within the specified category path will be considered. If not specified '/' is used.");
+	private static void printUsage() {
+		System.err.println("Usage: NodeDocuGenerator options");
+		System.err.println("Allowed options are:");
+		System.err.println(
+				"\t-destination dir : directory where " + "the result should be written to (directory must exist)");
+		System.err.println(
+				"\t-plugin plugin-id : Only nodes of the specified plugin will be considered. If not all available plugins will be processed.");
+		System.err.println(
+				"\t-category category-path (e.g. /community) : Only nodes within the specified category path will be considered. If not specified '/' is used.");
 
-    }
+	}
 
-    /* target directory */
-    private File m_directory;
+	/* target directory */
+	private File m_directory;
 
-    private String m_pluginId = null;
+	private String m_pluginId = null;
 
-    private String m_catPath = "/";
+	private String m_catPath = "/";
 
-    private CategoryDoc rootCategoryDoc;
+	private CategoryDoc rootCategoryDoc;
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Object start(final IApplicationContext context) throws Exception {
-        Object o = context.getArguments().get("application.args");
-        Display.getDefault();
-        if ((o != null) && (o instanceof String[])) {
-            String[] args = (String[])o;
-            for (int i = 0; i < args.length; i++) {
-                if (args[i].equals(DESTINATION_ARG)) {
-                    m_directory = new File(args[i + 1]);
-                } else if (args[i].equals(CATEGORY_ARG)) {
-                    m_catPath = args[i + 1];
-                } else if (args[i].equals(PLUGIN_ARG)) {
-                    m_pluginId = args[i + 1];
-                } else if (args[i].equals("-help")) {
-                    printUsage();
-                    return EXIT_OK;
-                }
-            }
-        }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Object start(final IApplicationContext context) throws Exception {
+		Object o = context.getArguments().get("application.args");
+		Display.getDefault();
+		if ((o != null) && (o instanceof String[])) {
+			String[] args = (String[]) o;
+			for (int i = 0; i < args.length; i++) {
+				if (args[i].equals(DESTINATION_ARG)) {
+					m_directory = new File(args[i + 1]);
+				} else if (args[i].equals(CATEGORY_ARG)) {
+					m_catPath = args[i + 1];
+				} else if (args[i].equals(PLUGIN_ARG)) {
+					m_pluginId = args[i + 1];
+				} else if (args[i].equals("-help")) {
+					printUsage();
+					return EXIT_OK;
+				}
+			}
+		}
 
-        if (m_directory == null) {
-            System.err.println("No output directory specified");
-            printUsage();
-            return 1;
-        } else if (!m_directory.exists() && !m_directory.mkdirs()) {
-            System.err.println("Could not create output directory '" + m_directory.getAbsolutePath() + "'.");
-            return 1;
-        }
+		if (m_directory == null) {
+			System.err.println("No output directory specified");
+			printUsage();
+			return 1;
+		} else if (!m_directory.exists() && !m_directory.mkdirs()) {
+			System.err.println("Could not create output directory '" + m_directory.getAbsolutePath() + "'.");
+			return 1;
+		}
 
-        generate();
+		generate();
 
-        return EXIT_OK;
-    }
+		return EXIT_OK;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void stop() {
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void stop() {
 
-    }
+	}
 
-    /**
-     * Starts generating the node reference documents.
-     *
-     * @throws Exception
-     */
-    private void generate() throws Exception {
+	/**
+	 * Starts generating the node reference documents.
+	 *
+	 * @throws Exception
+	 */
+	private void generate() throws Exception {
 
-        System.out.println("Reading node repository");
-        IRepositoryObject root = RepositoryManager.INSTANCE.getRoot();
+		System.out.println("Reading node repository");
 
-        rootCategoryDoc = new CategoryDoc(root);
+		IRepositoryObject root = RepositoryManager.INSTANCE.getRoot();
+		CategoryDocBuilder builder = new CategoryDocBuilder();
+		builder.setIdentifier(root.getID());
+		builder.setName(root.getName());
+		builder.setContributingPlugin(root.getContributingPlugin());
+		rootCategoryDoc = builder.build();
 
-        // determine the root category according to the user specified category
-        // path (only if the specified category should appear as new root)
-        // String[] cats = m_catPath.split("/");
-        // for (int i = 1; i < cats.length; i++) {
-        // IRepositoryObject[] children = null;
-        // if (root instanceof Root) {
-        // children = ((Root)root).getChildren();
-        // } else if (root instanceof Category) {
-        // children = ((Category)root).getChildren();
-        // } else {
-        // break;
-        // }
-        // if (children != null) {
-        // for (int j = 0; j < children.length; j++) {
-        // if (children[j].getID().equals(cats[i])) {
-        // root = children[j];
-        // break;
-        // }
-        // }
-        // }
-        //
-        // }
+		// determine the root category according to the user specified category
+		// path (only if the specified category should appear as new root)
+		// String[] cats = m_catPath.split("/");
+		// for (int i = 1; i < cats.length; i++) {
+		// IRepositoryObject[] children = null;
+		// if (root instanceof Root) {
+		// children = ((Root)root).getChildren();
+		// } else if (root instanceof Category) {
+		// children = ((Category)root).getChildren();
+		// } else {
+		// break;
+		// }
+		// if (children != null) {
+		// for (int j = 0; j < children.length; j++) {
+		// if (children[j].getID().equals(cats[i])) {
+		// root = children[j];
+		// break;
+		// }
+		// }
+		// }
+		//
+		// }
 
-        // replace '/' with points and remove leading '/'
-        if (m_catPath.startsWith("/")) {
-            m_catPath = m_catPath.substring(1);
-        }
-        m_catPath = m_catPath.replaceAll("/", ".");
+		// replace '/' with points and remove leading '/'
+		if (m_catPath.startsWith("/")) {
+			m_catPath = m_catPath.substring(1);
+		}
+		m_catPath = m_catPath.replaceAll("/", ".");
 
-        // recursively generate the node reference and the node description
-        // pages
-        generate(m_directory, root, null, rootCategoryDoc);
+		// recursively generate the node reference and the node description
+		// pages
+		generate(m_directory, root, null, rootCategoryDoc);
 
-        String resultJson = rootCategoryDoc.toJson();
-        File resultFile = new File(m_directory, "nodeDocumentation.json");
-        System.out.println("Writing result to " + resultFile);
-		IOUtils.write(resultJson, new FileOutputStream(resultFile));
+		String resultJson = rootCategoryDoc.toJson();
+		File resultFile = new File(m_directory, "nodeDocumentation.json");
+		System.out.println("Writing result to " + resultFile);
+		IOUtils.write(resultJson, new FileOutputStream(resultFile), Charset.defaultCharset());
 
-    }
+	}
 
-    /**
-     * Recursively generates the nodes description documents and the menu entries.
-     *
-     * @param directory
-     * @param current
-     * @param parent parent repository object as some nodes pointing to "frequently used"-repository object as a parent
-     * @param parentCategory The parent category where to insert the JSON entry.
-     * @throws Exception
-     * @throws TransformerException
-     *
-     * @return true, if the element was added to the documentation, false if it has been skipped
-     */
-    private boolean generate(final File directory, final IRepositoryObject current, final IRepositoryObject parent, CategoryDoc parentCategory)
-            throws TransformerException, Exception {
+	/**
+	 * Recursively generates the nodes description documents and the menu entries.
+	 *
+	 * @param directory
+	 * @param current
+	 * @param parent
+	 *            parent repository object as some nodes pointing to "frequently
+	 *            used"-repository object as a parent
+	 * @param parentCategory
+	 *            The parent category where to insert the JSON entry.
+	 * @throws Exception
+	 * @throws TransformerException
+	 *
+	 * @return true, if the element was added to the documentation, false if it has
+	 *         been skipped
+	 */
+	private boolean generate(final File directory, final IRepositoryObject current, final IRepositoryObject parent,
+			CategoryDoc parentCategory) throws TransformerException, Exception {
 
-        if (current instanceof NodeTemplate) {
+		if (current instanceof NodeTemplate) {
 
-            // skip node if not part of the specified plugin
-            if (m_pluginId != null && !current.getContributingPlugin().equals(m_pluginId)) {
+			// skip node if not part of the specified plugin
+			if (m_pluginId != null && !current.getContributingPlugin().equals(m_pluginId)) {
 
-                return false;
-            }
+				return false;
+			}
 
-            // skip if not in a sub-category of the category specified
-            // as argument
-            if (m_catPath.length() > 0) {
-                String catIdentifier = getCategoryIdentifier(parent);
-                if (!catIdentifier.startsWith(m_catPath)) {
-                    return false;
-                }
-            }
+			// skip if not in a sub-category of the category specified
+			// as argument
+			if (m_catPath.length() > 0) {
+				String catIdentifier = getCategoryIdentifier(parent);
+				if (!catIdentifier.startsWith(m_catPath)) {
+					return false;
+				}
+			}
 
 			// create the JSON entry from the node XML description
 			NodeTemplate nodeTemplate = (NodeTemplate) current;
@@ -253,36 +264,43 @@ public class JsonNodeDocuGenerator implements IApplication {
 			builder.setStreamable(isStreamable(nodeTemplate));
 			parentCategory.addNode(builder.build());
 
-            return true;
-        } else if (current instanceof Category || current instanceof Root) {
-            System.out.println("Processing category " + getPath(current));
-            IRepositoryObject[] repoObjs = ((IContainerObject)current).getChildren();
+			return true;
+		} else if (current instanceof Category || current instanceof Root) {
+			System.out.println("Processing category " + getPath(current));
+			IRepositoryObject[] repoObjs = ((IContainerObject) current).getChildren();
 
-            CategoryDoc newCategory = parentCategory;
+			CategoryDoc newCategory = parentCategory;
 
-            if (current instanceof Category) {
-            	newCategory = new CategoryDoc(current);
-            }
+			if (current instanceof Category) {
+				Category category = (Category) current;
+				CategoryDocBuilder builder = new CategoryDocBuilder();
+				builder.setIdentifier(category.getID());
+				builder.setName(category.getName());
+				builder.setDescription(category.getDescription());
+				builder.setContributingPlugin(category.getContributingPlugin());
+				builder.setIconBase64(getImageBase64(category.getIcon()));
+				newCategory = builder.build();
+			}
 
-            boolean hasChildren = false;
-            for (IRepositoryObject repoObj : repoObjs) {
-                hasChildren = hasChildren | generate(directory, repoObj, current, newCategory);
-            }
+			boolean hasChildren = false;
+			for (IRepositoryObject repoObj : repoObjs) {
+				hasChildren = hasChildren | generate(directory, repoObj, current, newCategory);
+			}
 
-            if (hasChildren && current instanceof Category) {
-            	parentCategory.addChild(newCategory);
-            }
+			if (hasChildren && current instanceof Category) {
+				parentCategory.addChild(newCategory);
+			}
 
-            return hasChildren;
+			return hasChildren;
 
-        } else {
-            // if the repository object is neither a node nor a category
-            // (hence,
-            // most likely a metanode), we just ignore them for now
-            return false;
-        }
+		} else {
+			// if the repository object is neither a node nor a category
+			// (hence,
+			// most likely a metanode), we just ignore them for now
+			return false;
+		}
 
-    }
+	}
 
 	private static String getImageBase64(Image image) {
 		ImageLoader imageLoader = new ImageLoader();
@@ -298,41 +316,42 @@ public class JsonNodeDocuGenerator implements IApplication {
 	 * IProgressMonitor, boolean)
 	 */
 	private static boolean isStreamable(NodeTemplate nodeTemplate) {
-        try {
-            NodeFactory<? extends NodeModel> nf = nodeTemplate.createFactoryInstance();
-            NodeModel nm = nf.createNodeModel();
-            //check whether the current node model overrides the #createStreamableOperator-method
-            Method m = nm.getClass().getMethod("createStreamableOperator", PartitionInfo.class,
-                PortObjectSpec[].class);
-            if (m.getDeclaringClass() != NodeModel.class) {
-            		//method has been overriden -> node is probably streamable or distributable
-            		return true;
-            }
-        } catch (Throwable t) {
-            System.out.println("Unable to instantiate the node " + nodeTemplate.getFactory().getName() + ": " + t.getMessage());
-        }
-        return false;
+		try {
+			NodeFactory<? extends NodeModel> nf = nodeTemplate.createFactoryInstance();
+			NodeModel nm = nf.createNodeModel();
+			// check whether the current node model overrides the
+			// #createStreamableOperator-method
+			Method m = nm.getClass().getMethod("createStreamableOperator", PartitionInfo.class, PortObjectSpec[].class);
+			if (m.getDeclaringClass() != NodeModel.class) {
+				// method has been overriden -> node is probably streamable or distributable
+				return true;
+			}
+		} catch (Throwable t) {
+			System.out.println(
+					"Unable to instantiate the node " + nodeTemplate.getFactory().getName() + ": " + t.getMessage());
+		}
+		return false;
 	}
 
-    /*
-     * Helper to compose the category names/identifier of the super-categories
-     * and the current one
-     */
-    private static String getCategoryIdentifier(final IRepositoryObject cat) {
-        IContainerObject parent = cat.getParent();
-        String identifier = cat.getID();
-        while (parent != null && !(parent instanceof Root)) {
-            identifier = parent.getID() + "." + identifier;
-            parent = parent.getParent();
-        }
-        return identifier;
-    }
+	/*
+	 * Helper to compose the category names/identifier of the super-categories and
+	 * the current one
+	 */
+	private static String getCategoryIdentifier(final IRepositoryObject cat) {
+		IContainerObject parent = cat.getParent();
+		String identifier = cat.getID();
+		while (parent != null && !(parent instanceof Root)) {
+			identifier = parent.getID() + "." + identifier;
+			parent = parent.getParent();
+		}
+		return identifier;
+	}
 
-    private static String getPath(final IRepositoryObject object) {
-        if (object.getParent() != null) {
-            return getPath(object.getParent()) + "/" + object.getName();
-        } else {
-            return "";
-        }
-    }
+	private static String getPath(final IRepositoryObject object) {
+		if (object.getParent() != null) {
+			return getPath(object.getParent()) + "/" + object.getName();
+		} else {
+			return "";
+		}
+	}
 }
