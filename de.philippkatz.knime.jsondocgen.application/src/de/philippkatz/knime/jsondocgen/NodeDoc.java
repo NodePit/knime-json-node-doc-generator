@@ -22,7 +22,6 @@ public final class NodeDoc {
 		private List<Port> inPorts;
 		private List<Port> outPorts;
 		private List<View> views;
-		private String icon;
 		private String type;
 		private boolean deprecated;
 		private InteractiveView interactiveView;
@@ -63,10 +62,6 @@ public final class NodeDoc {
 		}
 		public NodeDocBuilder setViews(List<View> views) {
 			this.views = views;
-			return this;
-		}
-		public NodeDocBuilder setIcon(String icon) {
-			this.icon = icon;
 			return this;
 		}
 		public NodeDocBuilder setType(String type) {
@@ -171,7 +166,6 @@ public final class NodeDoc {
 	final List<Port> inPorts;
 	final List<Port> outPorts;
 	final List<View> views;
-	final String icon;
 	final String type;
 	final boolean deprecated;
 	final InteractiveView interactiveView;
@@ -189,7 +183,6 @@ public final class NodeDoc {
 		inPorts = copyOrNull(builder.inPorts);
 		outPorts = copyOrNull(builder.outPorts);
 		views = copyOrNull(builder.views);
-		icon = builder.icon;
 		type = builder.type;
 		deprecated = builder.deprecated;
 		interactiveView = builder.interactiveView;

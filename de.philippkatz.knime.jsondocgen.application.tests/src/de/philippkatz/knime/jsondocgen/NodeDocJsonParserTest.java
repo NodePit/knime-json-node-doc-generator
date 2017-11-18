@@ -23,7 +23,6 @@ public class NodeDocJsonParserTest {
 		Document doc = readDoc("/FindElementsNodeFactory.xml");
 		NodeDoc description = NodeDocJsonParser.parse(doc, (String) null);
 		
-		assertEquals("../icons/node-magnifier.png",description.icon);
 		assertEquals("Manipulator",description.type);
 		assertEquals(false, description.deprecated);
 

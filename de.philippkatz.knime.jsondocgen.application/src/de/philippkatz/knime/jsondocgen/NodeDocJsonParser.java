@@ -45,7 +45,6 @@ public final class NodeDocJsonParser {
 		builder.setName(trim(jerry.$("knimeNode name").text()));
 		builder.setShortDescription(trim(jerry.$("knimeNode shortDescription").text()));
 		builder.setIntro(trim(jerry.$("knimeNode fullDescription intro").html()));
-		builder.setIcon(jerry.$("knimeNode").attr("icon"));
 		builder.setType(jerry.$("knimeNode").attr("type"));
 		builder.setDeprecated(parseOptionalBoolean(jerry.$("knimeNode").attr("deprecated")));
 
