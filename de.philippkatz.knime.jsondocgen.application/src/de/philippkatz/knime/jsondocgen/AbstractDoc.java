@@ -1,5 +1,8 @@
 package de.philippkatz.knime.jsondocgen;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -71,4 +74,17 @@ public abstract class AbstractDoc {
 		Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 		return gson.toJson(this);
 	}
+	
+	/**
+	 * Create a copy of the given list, return <code>null</code> when argument is
+	 * <code>null</code>.
+	 * 
+	 * @param list
+	 *            The list to copy.
+	 * @return A copy of the list or <code>null</code>.
+	 */
+	static <T> List<T> copyOrNull(List<T> list) {
+		return list != null ? new ArrayList<>(list) : null;
+	}
+
 }

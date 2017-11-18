@@ -153,17 +153,4 @@ public final class NodeDoc extends AbstractDoc {
 		interactiveView = builder.interactiveView;
 		streamable = builder.streamable;
 	}
-
-	/**
-	 * Create a copy of the given list, return <code>null</code> when argument is
-	 * <code>null</code>.
-	 * 
-	 * @param list
-	 *            The list to copy.
-	 * @return A copy of the list or <code>null</code>.
-	 */
-	static <T> List<T> copyOrNull(List<T> list) {
-		return list != null ? new ArrayList<>(list) : null;
-	}
-
 }

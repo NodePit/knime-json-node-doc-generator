@@ -39,8 +39,8 @@ public final class CategoryDoc extends AbstractDoc {
 
 	private CategoryDoc(CategoryDocBuilder builder) {
 		super(builder);
-		this.children = NodeDoc.copyOrNull(builder.children);
-		this.nodes = NodeDoc.copyOrNull(builder.nodes);
+		this.children = copyOrNull(builder.children);
+		this.nodes = copyOrNull(builder.nodes);
 	}
 	
 	/**
