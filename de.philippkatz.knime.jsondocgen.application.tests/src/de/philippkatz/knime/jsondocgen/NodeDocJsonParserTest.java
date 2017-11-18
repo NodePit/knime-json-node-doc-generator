@@ -27,7 +27,7 @@ public class NodeDocJsonParserTest {
 		assertEquals(false, description.deprecated);
 
 		assertEquals("Find Elements", description.name);
-		assertEquals("Find WebElements.", description.shortDescription);
+		assertEquals("Find WebElements.", description.description);
 
 		assertEquals(7, description.options.size());
 		assertEquals("Input", description.options.get(0).name);
@@ -42,8 +42,7 @@ public class NodeDocJsonParserTest {
 				description.inPorts.get(0).description);
 
 		assertEquals(1, description.outPorts.size());
-
-		assertTrue(description.toJson().replaceAll("\\s+", " ").startsWith("{ \"name\": \"Find Elements\""));
+		assertTrue(description.toJson().replaceAll("\\s+", " ").contains("\"name\": \"Find Elements\""));
 		
 		assertNull(description.interactiveView);
 	}

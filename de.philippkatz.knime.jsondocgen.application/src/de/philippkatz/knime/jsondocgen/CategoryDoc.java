@@ -5,46 +5,12 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+public final class CategoryDoc extends AbstractDoc {
 
-public final class CategoryDoc {
+	public static final class CategoryDocBuilder extends AbstractDocBuilder {
 
-	public static final class CategoryDocBuilder {
-
-		private String identifier;
-		private String name;
-		private String description;
-		private String contributingPlugin;
-		private String iconBase64;
 		private List<CategoryDoc> children;
 		private List<NodeDoc> nodes;
-		private String afterId;
-
-		public CategoryDocBuilder setIdentifier(String identifier) {
-			this.identifier = identifier;
-			return this;
-		}
-
-		public CategoryDocBuilder setName(String name) {
-			this.name = name;
-			return this;
-		}
-
-		public CategoryDocBuilder setDescription(String description) {
-			this.description = description;
-			return this;
-		}
-
-		public CategoryDocBuilder setContributingPlugin(String contributingPlugin) {
-			this.contributingPlugin = contributingPlugin;
-			return this;
-		}
-
-		public CategoryDocBuilder setIconBase64(String iconBase64) {
-			this.iconBase64 = iconBase64;
-			return this;
-		}
 		
 		public CategoryDocBuilder addChild(CategoryDoc child) {
 			if (children == null) {
@@ -61,11 +27,6 @@ public final class CategoryDoc {
 			nodes.add(node);
 			return this;
 		}		
-		
-		public CategoryDocBuilder setAfterId(String afterId) {
-			this.afterId = afterId;
-			return this;
-		}
 
 		public CategoryDoc build() {
 			return new CategoryDoc(this);
@@ -73,32 +34,13 @@ public final class CategoryDoc {
 
 	}
 
-	// TODO inconsistent; here we use "id", in NodeDoc "identifier"; but don't just
-	// rename this (now) as it will break existing code depending on the JSON
-	// structure
-	final String id;
-	final String name;
-	final String description;
-	final String contributingPlugin;
-	final String iconBase64;
 	final List<CategoryDoc> children;
 	final List<NodeDoc> nodes;
-	final String afterId;
 
 	private CategoryDoc(CategoryDocBuilder builder) {
-		this.id = builder.identifier;
-		this.name = builder.name;
-		this.description = builder.description;
-		this.contributingPlugin = builder.contributingPlugin;
-		this.iconBase64 = builder.iconBase64;
+		super(builder);
 		this.children = NodeDoc.copyOrNull(builder.children);
 		this.nodes = NodeDoc.copyOrNull(builder.nodes);
-		this.afterId = builder.afterId;
-	}
-
-	public String toJson() {
-		Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-		return gson.toJson(this);
 	}
 	
 	/**

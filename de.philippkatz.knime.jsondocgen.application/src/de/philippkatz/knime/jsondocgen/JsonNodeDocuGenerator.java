@@ -178,7 +178,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 		IRepositoryObject root = RepositoryManager.INSTANCE.getRoot();
 		rootCategoryDoc = new CategoryDocBuilder();
-		rootCategoryDoc.setIdentifier(root.getID());
+		rootCategoryDoc.setId(root.getID());
 		rootCategoryDoc.setName(root.getName());
 		rootCategoryDoc.setContributingPlugin(root.getContributingPlugin());
 
@@ -299,7 +299,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 			NodeTemplate nodeTemplate = (NodeTemplate) current;
 			Element xmlDescription = nodeTemplate.createFactoryInstance().getXMLDescription();
 			NodeDocBuilder builder = NodeDocJsonParser.parse(xmlDescription, new NodeDocBuilder());
-			builder.setIdentifier(current.getID());
+			builder.setId(current.getID());
 			builder.setContributingPlugin(current.getContributingPlugin());
 			builder.setIconBase64(getImageBase64(nodeTemplate.getIcon()));
 			builder.setStreamable(isStreamable(nodeTemplate));
@@ -316,7 +316,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 			if (current instanceof Category) {
 				Category category = (Category) current;
 				CategoryDocBuilder builder = new CategoryDocBuilder();
-				builder.setIdentifier(category.getID());
+				builder.setId(category.getID());
 				builder.setName(category.getName());
 				builder.setDescription(category.getDescription());
 				builder.setContributingPlugin(category.getContributingPlugin());

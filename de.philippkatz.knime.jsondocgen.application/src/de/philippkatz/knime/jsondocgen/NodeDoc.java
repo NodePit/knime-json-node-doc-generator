@@ -3,19 +3,13 @@ package de.philippkatz.knime.jsondocgen;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 /**
  * Intermediate object used for constructing the JSON and for testing. Use the
  * {@link NodeDocBuilder} for construction.
  */
-public final class NodeDoc {
+public final class NodeDoc extends AbstractDoc {
 	
-	public static final class NodeDocBuilder {
-		private String identifier;
-		private String name;
-		private String shortDescription;
+	public static final class NodeDocBuilder extends AbstractDocBuilder {
 		private String intro;
 		private List<OptionTab> optionTabs;
 		private List<Option> options;
@@ -25,22 +19,7 @@ public final class NodeDoc {
 		private String type;
 		private boolean deprecated;
 		private InteractiveView interactiveView;
-		private String contributingPlugin;
-		private String iconBase64;
 		private boolean streamable;
-		private String afterId;
-		public NodeDocBuilder setIdentifier(String identifier) {
-			this.identifier = identifier;
-			return this;
-		}
-		public NodeDocBuilder setName(String name) {
-			this.name = name;
-			return this;
-		}
-		public NodeDocBuilder setShortDescription(String shortDescription) {
-			this.shortDescription = shortDescription;
-			return this;
-		}
 		public NodeDocBuilder setIntro(String intro) {
 			this.intro = intro;
 			return this;
@@ -91,20 +70,8 @@ public final class NodeDoc {
 			views.add(view);
 			return this;
 		}
-		public NodeDocBuilder setContributingPlugin(String contributingPlugin) {
-			this.contributingPlugin = contributingPlugin;
-			return this;
-		}
-		public NodeDocBuilder setIconBase64(String iconBase64) {
-			this.iconBase64 = iconBase64;
-			return this;
-		}
 		public NodeDocBuilder setStreamable(boolean streamable) {
 			this.streamable = streamable;
-			return this;
-		}
-		public NodeDocBuilder setAfterId(String afterID) {
-			this.afterId = afterID;
 			return this;
 		}
 		public NodeDoc build() {
@@ -162,9 +129,6 @@ public final class NodeDoc {
 		}
 	}
 
-	final String identifier;
-	final String name;
-	final String shortDescription;
 	final String intro;
 	final List<OptionTab> optionTabs;
 	final List<Option> options;
@@ -174,15 +138,10 @@ public final class NodeDoc {
 	final String type;
 	final boolean deprecated;
 	final InteractiveView interactiveView;
-	final String contributingPlugin;
-	final String iconBase64;
 	final boolean streamable;
-	final String afterId;
 
 	private NodeDoc(NodeDocBuilder builder) {
-		identifier = builder.identifier;
-		name = builder.name;
-		shortDescription = builder.shortDescription;
+		super(builder);
 		intro = builder.intro;
 		optionTabs = copyOrNull(builder.optionTabs);
 		options = copyOrNull(builder.options);
@@ -192,10 +151,7 @@ public final class NodeDoc {
 		type = builder.type;
 		deprecated = builder.deprecated;
 		interactiveView = builder.interactiveView;
-		contributingPlugin = builder.contributingPlugin;
-		iconBase64 = builder.iconBase64;
 		streamable = builder.streamable;
-		afterId = builder.afterId;
 	}
 
 	/**
@@ -208,11 +164,6 @@ public final class NodeDoc {
 	 */
 	static <T> List<T> copyOrNull(List<T> list) {
 		return list != null ? new ArrayList<>(list) : null;
-	}
-
-	public String toJson() {
-		Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-		return gson.toJson(this);
 	}
 
 }

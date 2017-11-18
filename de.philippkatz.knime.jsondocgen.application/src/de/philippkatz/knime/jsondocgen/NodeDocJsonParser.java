@@ -43,7 +43,7 @@ public final class NodeDocJsonParser {
 		Jerry jerry = jerryParser.parse(xmlString);
 
 		builder.setName(trim(jerry.$("knimeNode name").text()));
-		builder.setShortDescription(trim(jerry.$("knimeNode shortDescription").text()));
+		builder.setDescription(trim(jerry.$("knimeNode shortDescription").text()));
 		builder.setIntro(trim(jerry.$("knimeNode fullDescription intro").html()));
 		builder.setType(jerry.$("knimeNode").attr("type"));
 		builder.setDeprecated(parseOptionalBoolean(jerry.$("knimeNode").attr("deprecated")));
@@ -91,7 +91,7 @@ public final class NodeDocJsonParser {
 		Objects.requireNonNull(domNode, "document must not be null");
 		NodeDocBuilder builder = new NodeDocBuilder();
 		parse(domNode, builder);
-		builder.setIdentifier(nodeIdentifier);
+		builder.setId(nodeIdentifier);
 		return builder.build();
 
 	}
