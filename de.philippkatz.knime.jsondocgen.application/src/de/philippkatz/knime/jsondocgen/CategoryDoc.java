@@ -1,7 +1,9 @@
 package de.philippkatz.knime.jsondocgen;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -86,6 +88,23 @@ public final class CategoryDoc {
 	public String toJson() {
 		Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 		return gson.toJson(this);
+	}
+	
+	/**
+	 * Recursively retrieves all plugin IDs of all contained categories and nodes.
+	 * 
+	 * @return Set with all plugin IDs.
+	 */
+	public Set<String> getAllContributingPlugins() {
+		Set<String> result = new LinkedHashSet<>();
+		result.add(contributingPlugin);
+		if (children != null) {
+			children.forEach(categoryDoc -> result.addAll(categoryDoc.getAllContributingPlugins()));
+		}
+		if (nodes != null) {
+			nodes.forEach(nodeDoc -> result.add(nodeDoc.contributingPlugin));
+		}
+		return result;
 	}
 
 }

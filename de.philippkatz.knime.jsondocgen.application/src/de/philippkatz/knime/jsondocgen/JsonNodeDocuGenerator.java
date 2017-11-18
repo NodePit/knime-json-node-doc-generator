@@ -53,10 +53,14 @@ import java.io.FileOutputStream;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.util.Base64;
+import java.util.Collection;
 
 import javax.xml.transform.TransformerException;
 
 import org.apache.commons.io.IOUtils;
+import org.eclipse.core.runtime.IBundleGroup;
+import org.eclipse.core.runtime.IBundleGroupProvider;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
 import org.eclipse.swt.SWT;
@@ -74,6 +78,7 @@ import org.knime.workbench.repository.model.IContainerObject;
 import org.knime.workbench.repository.model.IRepositoryObject;
 import org.knime.workbench.repository.model.NodeTemplate;
 import org.knime.workbench.repository.model.Root;
+import org.osgi.framework.Bundle;
 import org.w3c.dom.Element;
 
 import de.philippkatz.knime.jsondocgen.CategoryDoc.CategoryDocBuilder;
@@ -210,10 +215,47 @@ public class JsonNodeDocuGenerator implements IApplication {
 		// pages
 		generate(m_directory, root, null, rootCategoryDoc);
 
-		String resultJson = rootCategoryDoc.build().toJson();
+		CategoryDoc rootCategory = rootCategoryDoc.build();
+		String resultJson = rootCategory.toJson();
 		File resultFile = new File(m_directory, "nodeDocumentation.json");
 		System.out.println("Writing result to " + resultFile);
 		IOUtils.write(resultJson, new FileOutputStream(resultFile), Charset.defaultCharset());
+		
+		// get plugin information
+		Collection<String> allPlugins = rootCategory.getAllContributingPlugins();
+		for (String pluginId : allPlugins) {
+			// there might be more than one bundle (different versions)
+			Bundle[] bundles = Platform.getBundles(pluginId, null);
+			for (Bundle bundle : bundles) {
+				// TODO there are many more
+				String bundleName = bundle.getHeaders().get(org.osgi.framework.Constants.BUNDLE_NAME);
+				String bundleVendor = bundle.getHeaders().get(org.osgi.framework.Constants.BUNDLE_VENDOR);
+				String bundleCopyright = bundle.getHeaders().get(org.osgi.framework.Constants.BUNDLE_COPYRIGHT);
+				String bundleVersion = bundle.getHeaders().get(org.osgi.framework.Constants.BUNDLE_VERSION);
+				
+				System.out.println("bundleName: " + bundleName);
+				System.out.println("bundleVendor: " + bundleVendor);
+				System.out.println("bundleCopyright: " + bundleCopyright);
+				System.out.println("bundleVersion: " + bundleVersion);
+			}
+		}
+		
+		// get feature information
+		for (IBundleGroupProvider bundleGroupProvider : Platform.getBundleGroupProviders()) {
+			System.out.println("bundleGroupProvider: " + bundleGroupProvider.getName());
+			for (IBundleGroup bundleGroup : bundleGroupProvider.getBundleGroups()) {
+				String bundleGroupIdentifier = bundleGroup.getIdentifier();
+				String bundleGroupDescription = bundleGroup.getDescription();
+				String bundleGroupName = bundleGroup.getName();
+				String bundleGroupProviderName = bundleGroup.getProviderName();
+				String bundleGroupVersion = bundleGroup.getVersion();
+				System.out.println("bundleGroupIdentifier: " + bundleGroupIdentifier);
+				System.out.println("bundleGroupDescription: " + bundleGroupDescription);
+				System.out.println("bundleGroupName: " + bundleGroupName);
+				System.out.println("bundleGroupProviderName: " + bundleGroupProviderName);
+				System.out.println("bundleGroupVersion: " + bundleGroupVersion);
+			}
+		}
 
 	}
 
