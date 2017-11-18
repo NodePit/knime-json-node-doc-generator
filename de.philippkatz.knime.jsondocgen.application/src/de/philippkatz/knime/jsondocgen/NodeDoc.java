@@ -28,6 +28,7 @@ public final class NodeDoc {
 		private String contributingPlugin;
 		private String iconBase64;
 		private boolean streamable;
+		private String afterId;
 		public NodeDocBuilder setIdentifier(String identifier) {
 			this.identifier = identifier;
 			return this;
@@ -102,6 +103,10 @@ public final class NodeDoc {
 			this.streamable = streamable;
 			return this;
 		}
+		public NodeDocBuilder setAfterId(String afterID) {
+			this.afterId = afterID;
+			return this;
+		}
 		public NodeDoc build() {
 			return new NodeDoc(this);
 		}
@@ -172,6 +177,7 @@ public final class NodeDoc {
 	final String contributingPlugin;
 	final String iconBase64;
 	final boolean streamable;
+	final String afterId;
 
 	private NodeDoc(NodeDocBuilder builder) {
 		identifier = builder.identifier;
@@ -189,6 +195,7 @@ public final class NodeDoc {
 		contributingPlugin = builder.contributingPlugin;
 		iconBase64 = builder.iconBase64;
 		streamable = builder.streamable;
+		afterId = builder.afterId;
 	}
 
 	/**

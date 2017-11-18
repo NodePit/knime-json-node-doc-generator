@@ -19,6 +19,7 @@ public final class CategoryDoc {
 		private String iconBase64;
 		private List<CategoryDoc> children;
 		private List<NodeDoc> nodes;
+		private String afterId;
 
 		public CategoryDocBuilder setIdentifier(String identifier) {
 			this.identifier = identifier;
@@ -60,6 +61,11 @@ public final class CategoryDoc {
 			nodes.add(node);
 			return this;
 		}		
+		
+		public CategoryDocBuilder setAfterId(String afterId) {
+			this.afterId = afterId;
+			return this;
+		}
 
 		public CategoryDoc build() {
 			return new CategoryDoc(this);
@@ -67,6 +73,9 @@ public final class CategoryDoc {
 
 	}
 
+	// TODO inconsistent; here we use "id", in NodeDoc "identifier"; but don't just
+	// rename this (now) as it will break existing code depending on the JSON
+	// structure
 	final String id;
 	final String name;
 	final String description;
@@ -74,6 +83,7 @@ public final class CategoryDoc {
 	final String iconBase64;
 	final List<CategoryDoc> children;
 	final List<NodeDoc> nodes;
+	final String afterId;
 
 	private CategoryDoc(CategoryDocBuilder builder) {
 		this.id = builder.identifier;
@@ -83,6 +93,7 @@ public final class CategoryDoc {
 		this.iconBase64 = builder.iconBase64;
 		this.children = NodeDoc.copyOrNull(builder.children);
 		this.nodes = NodeDoc.copyOrNull(builder.nodes);
+		this.afterId = builder.afterId;
 	}
 
 	public String toJson() {

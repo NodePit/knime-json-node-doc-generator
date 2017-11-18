@@ -303,6 +303,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 			builder.setContributingPlugin(current.getContributingPlugin());
 			builder.setIconBase64(getImageBase64(nodeTemplate.getIcon()));
 			builder.setStreamable(isStreamable(nodeTemplate));
+			builder.setAfterId(stringOrNull(nodeTemplate.getAfterID()));
 			parentCategory.addNode(builder.build());
 
 			return true;
@@ -320,6 +321,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 				builder.setDescription(category.getDescription());
 				builder.setContributingPlugin(category.getContributingPlugin());
 				builder.setIconBase64(getImageBase64(category.getIcon()));
+				builder.setAfterId(stringOrNull(category.getAfterID()));
 				newCategory = builder;
 			}
 
@@ -341,6 +343,10 @@ public class JsonNodeDocuGenerator implements IApplication {
 			return false;
 		}
 
+	}
+
+	private String stringOrNull(String string) {
+		return (string == null || string.isEmpty()) ? null : string;
 	}
 
 	private static String getImageBase64(Image image) {
