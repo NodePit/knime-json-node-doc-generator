@@ -219,8 +219,8 @@ public class JsonNodeDocuGenerator implements IApplication {
 		String resultJson = rootCategory.toJson();
 		File resultFile = new File(m_directory, "nodeDocumentation.json");
 		System.out.println("Writing result to " + resultFile);
-		IOUtils.write(resultJson, new FileOutputStream(resultFile), Charset.defaultCharset());
-		
+		IOUtils.write(resultJson, new FileOutputStream(resultFile), Charset.forName("UTF-8"));
+
 		// get plugin information
 		Collection<String> allPlugins = rootCategory.getAllContributingPlugins();
 		for (String pluginId : allPlugins) {
@@ -232,14 +232,14 @@ public class JsonNodeDocuGenerator implements IApplication {
 				String bundleVendor = bundle.getHeaders().get(org.osgi.framework.Constants.BUNDLE_VENDOR);
 				String bundleCopyright = bundle.getHeaders().get(org.osgi.framework.Constants.BUNDLE_COPYRIGHT);
 				String bundleVersion = bundle.getHeaders().get(org.osgi.framework.Constants.BUNDLE_VERSION);
-				
+
 				System.out.println("bundleName: " + bundleName);
 				System.out.println("bundleVendor: " + bundleVendor);
 				System.out.println("bundleCopyright: " + bundleCopyright);
 				System.out.println("bundleVersion: " + bundleVersion);
 			}
 		}
-		
+
 		// get feature information
 		for (IBundleGroupProvider bundleGroupProvider : Platform.getBundleGroupProviders()) {
 			System.out.println("bundleGroupProvider: " + bundleGroupProvider.getName());
