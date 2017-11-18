@@ -15,6 +15,8 @@ public final class CategoryDoc {
 		private String description;
 		private String contributingPlugin;
 		private String iconBase64;
+		private List<CategoryDoc> children;
+		private List<NodeDoc> nodes;
 
 		public CategoryDocBuilder setIdentifier(String identifier) {
 			this.identifier = identifier;
@@ -40,6 +42,22 @@ public final class CategoryDoc {
 			this.iconBase64 = iconBase64;
 			return this;
 		}
+		
+		public CategoryDocBuilder addChild(CategoryDoc child) {
+			if (children == null) {
+				children = new ArrayList<>();
+			}
+			children.add(child);
+			return this;
+		}
+
+		public CategoryDocBuilder addNode(NodeDoc node) {
+			if (nodes == null) {
+				nodes = new ArrayList<>();
+			}
+			nodes.add(node);
+			return this;
+		}		
 
 		public CategoryDoc build() {
 			return new CategoryDoc(this);
@@ -52,8 +70,8 @@ public final class CategoryDoc {
 	final String description;
 	final String contributingPlugin;
 	final String iconBase64;
-	List<CategoryDoc> children;
-	List<NodeDoc> nodes;
+	final List<CategoryDoc> children;
+	final List<NodeDoc> nodes;
 
 	private CategoryDoc(CategoryDocBuilder builder) {
 		this.id = builder.identifier;
@@ -61,20 +79,8 @@ public final class CategoryDoc {
 		this.description = builder.description;
 		this.contributingPlugin = builder.contributingPlugin;
 		this.iconBase64 = builder.iconBase64;
-	}
-
-	public void addChild(CategoryDoc child) {
-		if (children == null) {
-			children = new ArrayList<>();
-		}
-		children.add(child);
-	}
-
-	public void addNode(NodeDoc node) {
-		if (nodes == null) {
-			nodes = new ArrayList<>();
-		}
-		nodes.add(node);
+		this.children = NodeDoc.copyOrNull(builder.children);
+		this.nodes = NodeDoc.copyOrNull(builder.nodes);
 	}
 
 	public String toJson() {

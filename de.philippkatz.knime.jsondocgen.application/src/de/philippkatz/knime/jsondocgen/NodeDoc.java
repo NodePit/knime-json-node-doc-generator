@@ -206,7 +206,7 @@ public final class NodeDoc {
 	 *            The list to copy.
 	 * @return A copy of the list or <code>null</code>.
 	 */
-	private static <T> List<T> copyOrNull(List<T> list) {
+	static <T> List<T> copyOrNull(List<T> list) {
 		return list != null ? new ArrayList<>(list) : null;
 	}
 

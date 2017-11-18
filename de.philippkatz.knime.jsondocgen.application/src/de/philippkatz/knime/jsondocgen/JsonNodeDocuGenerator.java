@@ -115,7 +115,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 	private String m_catPath = "/";
 
-	private CategoryDoc rootCategoryDoc;
+	private CategoryDocBuilder rootCategoryDoc;
 
 	/**
 	 * {@inheritDoc}
@@ -172,11 +172,10 @@ public class JsonNodeDocuGenerator implements IApplication {
 		System.out.println("Reading node repository");
 
 		IRepositoryObject root = RepositoryManager.INSTANCE.getRoot();
-		CategoryDocBuilder builder = new CategoryDocBuilder();
-		builder.setIdentifier(root.getID());
-		builder.setName(root.getName());
-		builder.setContributingPlugin(root.getContributingPlugin());
-		rootCategoryDoc = builder.build();
+		rootCategoryDoc = new CategoryDocBuilder();
+		rootCategoryDoc.setIdentifier(root.getID());
+		rootCategoryDoc.setName(root.getName());
+		rootCategoryDoc.setContributingPlugin(root.getContributingPlugin());
 
 		// determine the root category according to the user specified category
 		// path (only if the specified category should appear as new root)
@@ -211,7 +210,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 		// pages
 		generate(m_directory, root, null, rootCategoryDoc);
 
-		String resultJson = rootCategoryDoc.toJson();
+		String resultJson = rootCategoryDoc.build().toJson();
 		File resultFile = new File(m_directory, "nodeDocumentation.json");
 		System.out.println("Writing result to " + resultFile);
 		IOUtils.write(resultJson, new FileOutputStream(resultFile), Charset.defaultCharset());
@@ -235,7 +234,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 	 *         been skipped
 	 */
 	private boolean generate(final File directory, final IRepositoryObject current, final IRepositoryObject parent,
-			CategoryDoc parentCategory) throws TransformerException, Exception {
+			CategoryDocBuilder parentCategory) throws TransformerException, Exception {
 
 		if (current instanceof NodeTemplate) {
 
@@ -269,7 +268,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 			System.out.println("Processing category " + getPath(current));
 			IRepositoryObject[] repoObjs = ((IContainerObject) current).getChildren();
 
-			CategoryDoc newCategory = parentCategory;
+			CategoryDocBuilder newCategory = parentCategory;
 
 			if (current instanceof Category) {
 				Category category = (Category) current;
@@ -279,7 +278,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 				builder.setDescription(category.getDescription());
 				builder.setContributingPlugin(category.getContributingPlugin());
 				builder.setIconBase64(getImageBase64(category.getIcon()));
-				newCategory = builder.build();
+				newCategory = builder;
 			}
 
 			boolean hasChildren = false;
@@ -288,7 +287,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 			}
 
 			if (hasChildren && current instanceof Category) {
-				parentCategory.addChild(newCategory);
+				parentCategory.addChild(newCategory.build());
 			}
 
 			return hasChildren;
