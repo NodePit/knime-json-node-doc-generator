@@ -51,9 +51,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.lang.reflect.Method;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.transform.TransformerException;
 
@@ -79,10 +81,12 @@ import org.knime.workbench.repository.model.IRepositoryObject;
 import org.knime.workbench.repository.model.NodeTemplate;
 import org.knime.workbench.repository.model.Root;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.Constants;
 import org.w3c.dom.Element;
 
 import de.philippkatz.knime.jsondocgen.CategoryDoc.CategoryDocBuilder;
 import de.philippkatz.knime.jsondocgen.NodeDoc.NodeDocBuilder;
+import de.philippkatz.knime.jsondocgen.PluginDoc.PluginDocBuilder;
 
 /**
  * Creates a summary of the node descriptions of a all available KNIME nodes in
@@ -219,26 +223,30 @@ public class JsonNodeDocuGenerator implements IApplication {
 		String resultJson = rootCategory.toJson();
 		File resultFile = new File(m_directory, "nodeDocumentation.json");
 		System.out.println("Writing result to " + resultFile);
-		IOUtils.write(resultJson, new FileOutputStream(resultFile), Charset.forName("UTF-8"));
+		IOUtils.write(resultJson, new FileOutputStream(resultFile), StandardCharsets.UTF_8);
 
 		// get plugin information
 		Collection<String> allPlugins = rootCategory.getAllContributingPlugins();
+		List<PluginDoc> bundleDocs = new ArrayList<>();
 		for (String pluginId : allPlugins) {
 			// there might be more than one bundle (different versions)
 			Bundle[] bundles = Platform.getBundles(pluginId, null);
 			for (Bundle bundle : bundles) {
-				// TODO there are many more
-				String bundleName = bundle.getHeaders().get(org.osgi.framework.Constants.BUNDLE_NAME);
-				String bundleVendor = bundle.getHeaders().get(org.osgi.framework.Constants.BUNDLE_VENDOR);
-				String bundleCopyright = bundle.getHeaders().get(org.osgi.framework.Constants.BUNDLE_COPYRIGHT);
-				String bundleVersion = bundle.getHeaders().get(org.osgi.framework.Constants.BUNDLE_VERSION);
-
-				System.out.println("bundleName: " + bundleName);
-				System.out.println("bundleVendor: " + bundleVendor);
-				System.out.println("bundleCopyright: " + bundleCopyright);
-				System.out.println("bundleVersion: " + bundleVersion);
+				PluginDocBuilder builder = new PluginDocBuilder();
+				builder.setName(bundle.getHeaders().get(Constants.BUNDLE_NAME));
+				// use this instead of Constants.BUNDLE_SYMBOLICNAME, b/c it doesn't contain the
+				// 'singleton:' part
+				builder.setSymbolicName(pluginId);
+				builder.setVersion(bundle.getHeaders().get(Constants.BUNDLE_VERSION));
+				builder.setVendor(bundle.getHeaders().get(Constants.BUNDLE_VENDOR));
+				bundleDocs.add(builder.build());
 			}
 		}
+		String bundlesJson = Utils.toJson(bundleDocs);
+		File bundlesResultFile = new File(m_directory, "bundles.json");
+		System.out.println("Writing bundles to " + bundlesResultFile );
+		IOUtils.write(bundlesJson, new FileOutputStream(bundlesResultFile), StandardCharsets.UTF_8);
+
 
 		// get feature information
 		for (IBundleGroupProvider bundleGroupProvider : Platform.getBundleGroupProviders()) {

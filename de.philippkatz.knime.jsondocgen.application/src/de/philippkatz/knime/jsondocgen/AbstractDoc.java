@@ -3,9 +3,6 @@ package de.philippkatz.knime.jsondocgen;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 public abstract class AbstractDoc {
 	public static class AbstractDocBuilder {
 		private String id;
@@ -71,8 +68,7 @@ public abstract class AbstractDoc {
 	}
 	
 	public String toJson() {
-		Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-		return gson.toJson(this);
+		return Utils.toJson(this);
 	}
 	
 	/**
