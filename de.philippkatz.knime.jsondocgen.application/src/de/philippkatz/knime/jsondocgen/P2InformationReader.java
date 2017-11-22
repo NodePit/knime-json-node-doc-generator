@@ -60,13 +60,14 @@ public final class P2InformationReader {
 			return StreamSupport.stream(allIUs.spliterator(), false).map(iu -> {
 				FeatureDocBuilder builder = new FeatureDocBuilder();
 				builder.setId(iu.getId());
-				builder.setName(iu.getProperty(IInstallableUnit.PROP_NAME));
+				// using null for locale means: use current locale
+				builder.setName(iu.getProperty(IInstallableUnit.PROP_NAME, null));
 				builder.setVersion(iu.getVersion().getOriginal());
-				builder.setDescription(iu.getProperty(IInstallableUnit.PROP_DESCRIPTION));
-				builder.setDescriptionUrl(iu.getProperty(IInstallableUnit.PROP_DESCRIPTION_URL));
-				builder.setProvider(iu.getProperty(IInstallableUnit.PROP_PROVIDER));
-				builder.setContact(iu.getProperty(IInstallableUnit.PROP_CONTACT));
-				builder.setDocumentationUrl(iu.getProperty(IInstallableUnit.PROP_DOC_URL));
+				builder.setDescription(iu.getProperty(IInstallableUnit.PROP_DESCRIPTION, null));
+				builder.setDescriptionUrl(iu.getProperty(IInstallableUnit.PROP_DESCRIPTION_URL, null));
+				builder.setProvider(iu.getProperty(IInstallableUnit.PROP_PROVIDER, null));
+				builder.setContact(iu.getProperty(IInstallableUnit.PROP_CONTACT, null));
+				builder.setDocumentationUrl(iu.getProperty(IInstallableUnit.PROP_DOC_URL, null));
 				iu.getLicenses(null).stream().findFirst().ifPresent(license -> {
 					builder.setLicense(license.getBody());
 					if (license.getLocation() != null) {
