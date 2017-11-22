@@ -84,9 +84,11 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
 import org.w3c.dom.Element;
 
-import de.philippkatz.knime.jsondocgen.CategoryDoc.CategoryDocBuilder;
-import de.philippkatz.knime.jsondocgen.NodeDoc.NodeDocBuilder;
-import de.philippkatz.knime.jsondocgen.PluginDoc.PluginDocBuilder;
+import de.philippkatz.knime.jsondocgen.docs.CategoryDoc;
+import de.philippkatz.knime.jsondocgen.docs.PluginDoc;
+import de.philippkatz.knime.jsondocgen.docs.CategoryDoc.CategoryDocBuilder;
+import de.philippkatz.knime.jsondocgen.docs.NodeDoc.NodeDocBuilder;
+import de.philippkatz.knime.jsondocgen.docs.PluginDoc.PluginDocBuilder;
 
 /**
  * Creates a summary of the node descriptions of a all available KNIME nodes in

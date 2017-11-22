@@ -14,8 +14,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.junit.Test;
 import org.w3c.dom.Document;
 
-import de.philippkatz.knime.jsondocgen.NodeDoc;
-import de.philippkatz.knime.jsondocgen.NodeDocJsonParser;
+import de.philippkatz.knime.jsondocgen.docs.NodeDoc;
 
 public class NodeDocJsonParserTest {
 	@Test

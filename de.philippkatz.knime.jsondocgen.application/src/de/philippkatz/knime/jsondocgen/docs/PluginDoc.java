@@ -1,4 +1,4 @@
-package de.philippkatz.knime.jsondocgen;
+package de.philippkatz.knime.jsondocgen.docs;
 
 public class PluginDoc {
 	public static final class PluginDocBuilder {

@@ -1,4 +1,4 @@
-package de.philippkatz.knime.jsondocgen;
+package de.philippkatz.knime.jsondocgen.docs;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;

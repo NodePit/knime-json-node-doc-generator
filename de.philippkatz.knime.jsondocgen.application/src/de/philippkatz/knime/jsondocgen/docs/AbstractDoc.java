@@ -1,7 +1,9 @@
-package de.philippkatz.knime.jsondocgen;
+package de.philippkatz.knime.jsondocgen.docs;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import de.philippkatz.knime.jsondocgen.Utils;
 
 public abstract class AbstractDoc {
 	public static class AbstractDocBuilder {
@@ -45,16 +47,16 @@ public abstract class AbstractDoc {
 
 	/** @deprecated JSON backwards compatibility; use {@link #id} */
 	@Deprecated
-	final String identifier;
-	final String id;
-	final String name;
+	public final String identifier;
+	public final String id;
+	public final String name;
 	/** @deprecated JSON backwards compatibility; use {@link #description} */
 	@Deprecated
-	final String shortDescription;
-	final String description;
-	final String contributingPlugin;
-	final String iconBase64;
-	final String afterId;
+	public final String shortDescription;
+	public final String description;
+	public final String contributingPlugin;
+	public final String iconBase64;
+	public final String afterId;
 
 	protected AbstractDoc(AbstractDocBuilder builder) {
 		identifier = builder.id;

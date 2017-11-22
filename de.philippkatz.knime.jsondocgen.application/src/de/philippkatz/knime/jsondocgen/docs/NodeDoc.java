@@ -1,4 +1,4 @@
-package de.philippkatz.knime.jsondocgen;
+package de.philippkatz.knime.jsondocgen.docs;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -80,30 +80,30 @@ public final class NodeDoc extends AbstractDoc {
 	}
 	
 	public static final class OptionTab {
-		final String name;
-		final List<Option> options;
-		/* package */ OptionTab(String name, List<Option> options) {
+		public final String name;
+		public final List<Option> options;
+		public OptionTab(String name, List<Option> options) {
 			this.name = name;
-			this.options = options;
+			this.options = copyOrNull(options);
 		}
 	}
 	public static final class Option {
-		final String name;
-		final String description;
-		final boolean optional;
-		/* package */ Option(String name, String description, boolean optional) {
+		public final String name;
+		public final String description;
+		public final boolean optional;
+		public Option(String name, String description, boolean optional) {
 			this.name = name;
 			this.description = description;
 			this.optional = optional;
 		}
 	}
 	public static final class Port {
-		final int index;
-		final String name;
-		final String description;
+		public final int index;
+		public final String name;
+		public final String description;
 		/** null in case of an outputPort. */
 		final Boolean optional;
-		/* package */ Port(int index, String name, String description, Boolean optional) {
+		public Port(int index, String name, String description, Boolean optional) {
 			this.index = index;
 			this.name = name;
 			this.description = description;
@@ -111,34 +111,34 @@ public final class NodeDoc extends AbstractDoc {
 		}
 	}
 	public static final class View {
-		final int index;
-		final String name;
-		final String description;
-		/* package */ View(int index, String name, String description) {
+		public final int index;
+		public final String name;
+		public final String description;
+		public View(int index, String name, String description) {
 			this.index = index;
 			this.name = name;
 			this.description = description;
 		}
 	}
 	public static final class InteractiveView {
-		final String name;
-		final String description;
-		/* package */ InteractiveView(String name, String description) {
+		public final String name;
+		public final String description;
+		public InteractiveView(String name, String description) {
 			this.name = name;
 			this.description = description;
 		}
 	}
 
-	final String intro;
-	final List<OptionTab> optionTabs;
-	final List<Option> options;
-	final List<Port> inPorts;
-	final List<Port> outPorts;
-	final List<View> views;
-	final String type;
-	final boolean deprecated;
-	final InteractiveView interactiveView;
-	final boolean streamable;
+	public final String intro;
+	public final List<OptionTab> optionTabs;
+	public final List<Option> options;
+	public final List<Port> inPorts;
+	public final List<Port> outPorts;
+	public final List<View> views;
+	public final String type;
+	public final boolean deprecated;
+	public final InteractiveView interactiveView;
+	public final boolean streamable;
 
 	private NodeDoc(NodeDocBuilder builder) {
 		super(builder);
