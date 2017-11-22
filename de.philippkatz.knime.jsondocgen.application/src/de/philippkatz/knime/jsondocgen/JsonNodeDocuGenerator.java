@@ -60,8 +60,6 @@ import java.util.List;
 import javax.xml.transform.TransformerException;
 
 import org.apache.commons.io.IOUtils;
-import org.eclipse.core.runtime.IBundleGroup;
-import org.eclipse.core.runtime.IBundleGroupProvider;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
@@ -85,9 +83,10 @@ import org.osgi.framework.Constants;
 import org.w3c.dom.Element;
 
 import de.philippkatz.knime.jsondocgen.docs.CategoryDoc;
-import de.philippkatz.knime.jsondocgen.docs.PluginDoc;
 import de.philippkatz.knime.jsondocgen.docs.CategoryDoc.CategoryDocBuilder;
+import de.philippkatz.knime.jsondocgen.docs.FeatureDoc;
 import de.philippkatz.knime.jsondocgen.docs.NodeDoc.NodeDocBuilder;
+import de.philippkatz.knime.jsondocgen.docs.PluginDoc;
 import de.philippkatz.knime.jsondocgen.docs.PluginDoc.PluginDocBuilder;
 
 /**
@@ -248,24 +247,12 @@ public class JsonNodeDocuGenerator implements IApplication {
 		File bundlesResultFile = new File(m_directory, "bundles.json");
 		System.out.println("Writing bundles to " + bundlesResultFile );
 		IOUtils.write(bundlesJson, new FileOutputStream(bundlesResultFile), StandardCharsets.UTF_8);
-
-
-		// get feature information
-		for (IBundleGroupProvider bundleGroupProvider : Platform.getBundleGroupProviders()) {
-			System.out.println("bundleGroupProvider: " + bundleGroupProvider.getName());
-			for (IBundleGroup bundleGroup : bundleGroupProvider.getBundleGroups()) {
-				String bundleGroupIdentifier = bundleGroup.getIdentifier();
-				String bundleGroupDescription = bundleGroup.getDescription();
-				String bundleGroupName = bundleGroup.getName();
-				String bundleGroupProviderName = bundleGroup.getProviderName();
-				String bundleGroupVersion = bundleGroup.getVersion();
-				System.out.println("bundleGroupIdentifier: " + bundleGroupIdentifier);
-				System.out.println("bundleGroupDescription: " + bundleGroupDescription);
-				System.out.println("bundleGroupName: " + bundleGroupName);
-				System.out.println("bundleGroupProviderName: " + bundleGroupProviderName);
-				System.out.println("bundleGroupVersion: " + bundleGroupVersion);
-			}
-		}
+		
+		List<FeatureDoc> featureDocs = P2InformationReader.readFeatureInfo();
+		String featuresJson = Utils.toJson(featureDocs);
+		File featuresResultFile = new File(m_directory, "features.json");
+		System.out.println("Writing features to " + featuresResultFile);
+		IOUtils.write(featuresJson, new FileOutputStream(featuresResultFile), StandardCharsets.UTF_8);
 
 	}
 
