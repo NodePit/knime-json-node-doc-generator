@@ -52,15 +52,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Collection;
-import java.util.List;
 
 import javax.xml.transform.TransformerException;
 
 import org.apache.commons.io.IOUtils;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
 import org.eclipse.swt.SWT;
@@ -78,16 +74,11 @@ import org.knime.workbench.repository.model.IContainerObject;
 import org.knime.workbench.repository.model.IRepositoryObject;
 import org.knime.workbench.repository.model.NodeTemplate;
 import org.knime.workbench.repository.model.Root;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.Constants;
 import org.w3c.dom.Element;
 
 import de.philippkatz.knime.jsondocgen.docs.CategoryDoc;
 import de.philippkatz.knime.jsondocgen.docs.CategoryDoc.CategoryDocBuilder;
-import de.philippkatz.knime.jsondocgen.docs.FeatureDoc;
 import de.philippkatz.knime.jsondocgen.docs.NodeDoc.NodeDocBuilder;
-import de.philippkatz.knime.jsondocgen.docs.PluginDoc;
-import de.philippkatz.knime.jsondocgen.docs.PluginDoc.PluginDocBuilder;
 
 /**
  * Creates a summary of the node descriptions of a all available KNIME nodes in
@@ -225,35 +216,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 		File resultFile = new File(m_directory, "nodeDocumentation.json");
 		System.out.println("Writing result to " + resultFile);
 		IOUtils.write(resultJson, new FileOutputStream(resultFile), StandardCharsets.UTF_8);
-
-		// get plugin information
-		Collection<String> allPlugins = rootCategory.getAllContributingPlugins();
-		List<PluginDoc> bundleDocs = new ArrayList<>();
-		for (String pluginId : allPlugins) {
-			// there might be more than one bundle (different versions)
-			Bundle[] bundles = Platform.getBundles(pluginId, null);
-			for (Bundle bundle : bundles) {
-				PluginDocBuilder builder = new PluginDocBuilder();
-				builder.setName(bundle.getHeaders().get(Constants.BUNDLE_NAME));
-				// use this instead of Constants.BUNDLE_SYMBOLICNAME, b/c it doesn't contain the
-				// 'singleton:' part
-				builder.setSymbolicName(pluginId);
-				builder.setVersion(bundle.getHeaders().get(Constants.BUNDLE_VERSION));
-				builder.setVendor(bundle.getHeaders().get(Constants.BUNDLE_VENDOR));
-				bundleDocs.add(builder.build());
-			}
-		}
-		String bundlesJson = Utils.toJson(bundleDocs);
-		File bundlesResultFile = new File(m_directory, "bundles.json");
-		System.out.println("Writing bundles to " + bundlesResultFile );
-		IOUtils.write(bundlesJson, new FileOutputStream(bundlesResultFile), StandardCharsets.UTF_8);
 		
-		List<FeatureDoc> featureDocs = P2InformationReader.readFeatureInfo();
-		String featuresJson = Utils.toJson(featureDocs);
-		File featuresResultFile = new File(m_directory, "features.json");
-		System.out.println("Writing features to " + featuresResultFile);
-		IOUtils.write(featuresJson, new FileOutputStream(featuresResultFile), StandardCharsets.UTF_8);
-
 	}
 
 	/**
