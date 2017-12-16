@@ -70,7 +70,6 @@ import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.streamable.PartitionInfo;
-import org.knime.workbench.repository.RepositoryManager;
 import org.knime.workbench.repository.model.Category;
 import org.knime.workbench.repository.model.IContainerObject;
 import org.knime.workbench.repository.model.IRepositoryObject;
@@ -99,15 +98,19 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 	private static final String PLUGIN_ARG = "-plugin";
 
+	private static final String INCLUDE_DEPRECATED_ARG = "-includeDeprecated";
+
 	private static void printUsage() {
 		System.err.println("Usage: NodeDocuGenerator options");
 		System.err.println("Allowed options are:");
+		System.err.println("\t" + DESTINATION_ARG
+				+ " dir : directory where the result should be written to (directory must exist)");
+		System.err.println("\t" + PLUGIN_ARG
+				+ " plugin-id : Only nodes of the specified plugin will be considered (specify multiple plugins by repeating this option). If not all available plugins will be processed.");
+		System.err.println("\t" + CATEGORY_ARG
+				+ " category-path (e.g. /community) : Only nodes within the specified category path will be considered. If not specified '/' is used.");
 		System.err.println(
-				"\t-destination dir : directory where " + "the result should be written to (directory must exist)");
-		System.err.println(
-				"\t-plugin plugin-id : Only nodes of the specified plugin will be considered (specify multiple plugins by repeating this option). If not all available plugins will be processed.");
-		System.err.println(
-				"\t-category category-path (e.g. /community) : Only nodes within the specified category path will be considered. If not specified '/' is used.");
+				"\t" + INCLUDE_DEPRECATED_ARG + " : Include nodes marked as 'deprecated' in the extension point.");
 
 	}
 
@@ -117,6 +120,8 @@ public class JsonNodeDocuGenerator implements IApplication {
 	private List<String> m_pluginId = new ArrayList<>();
 
 	private String m_catPath = "/";
+
+	private boolean m_includeDeprecated = false;
 
 	private CategoryDocBuilder rootCategoryDoc;
 
@@ -136,6 +141,8 @@ public class JsonNodeDocuGenerator implements IApplication {
 					m_catPath = args[i + 1];
 				} else if (args[i].equals(PLUGIN_ARG)) {
 					m_pluginId.add(args[i + 1]);
+				} else if (args[i].equals(INCLUDE_DEPRECATED_ARG)) {
+					m_includeDeprecated = true;
 				} else if (args[i].equals("-help")) {
 					printUsage();
 					return EXIT_OK;
@@ -265,7 +272,11 @@ public class JsonNodeDocuGenerator implements IApplication {
 			builder.setIconBase64(getImageBase64(nodeTemplate.getIcon()));
 			builder.setStreamable(isStreamable(nodeTemplate));
 			builder.setAfterId(stringOrNull(nodeTemplate.getAfterID()));
-			parentCategory.addNode(builder.build());
+			boolean deprecated = RepositoryManager.INSTANCE.isDeprecated(current.getID());
+			builder.setDeprecated(deprecated);
+			if (!deprecated || m_includeDeprecated) {
+				parentCategory.addNode(builder.build());
+			}
 
 			return true;
 		} else if (current instanceof Category || current instanceof Root) {
