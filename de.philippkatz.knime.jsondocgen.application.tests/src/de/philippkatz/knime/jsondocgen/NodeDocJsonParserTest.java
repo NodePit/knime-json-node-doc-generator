@@ -53,6 +53,13 @@ public class NodeDocJsonParserTest {
 		assertEquals(2, description.optionTabs.size());
 		assertEquals("Options", description.optionTabs.get(0).name);
 	}
+	
+	@Test
+	public void parsing_XML_dynamicJSNodes() throws Exception {
+		Document doc = readDoc("/dynamicJS/node.xml");
+		NodeDoc description = NodeDocJsonParser.parse(doc, (String) null);
+		assertEquals("Box Plot (JavaScript)", description.name);
+	}
 
 	private static Document readDoc(String resourcePath) throws Exception {
 		Objects.requireNonNull(resourcePath, "resourcePath must not be null");
