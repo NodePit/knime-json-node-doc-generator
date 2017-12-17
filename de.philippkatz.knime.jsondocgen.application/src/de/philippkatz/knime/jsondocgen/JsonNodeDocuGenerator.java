@@ -125,9 +125,6 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 	private CategoryDocBuilder rootCategoryDoc;
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public Object start(final IApplicationContext context) throws Exception {
 		Object o = context.getArguments().get("application.args");
@@ -164,9 +161,6 @@ public class JsonNodeDocuGenerator implements IApplication {
 		return EXIT_OK;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public void stop() {
 
@@ -186,29 +180,6 @@ public class JsonNodeDocuGenerator implements IApplication {
 		rootCategoryDoc.setId(root.getID());
 		rootCategoryDoc.setName(root.getName());
 		rootCategoryDoc.setContributingPlugin(root.getContributingPlugin());
-
-		// determine the root category according to the user specified category
-		// path (only if the specified category should appear as new root)
-		// String[] cats = m_catPath.split("/");
-		// for (int i = 1; i < cats.length; i++) {
-		// IRepositoryObject[] children = null;
-		// if (root instanceof Root) {
-		// children = ((Root)root).getChildren();
-		// } else if (root instanceof Category) {
-		// children = ((Category)root).getChildren();
-		// } else {
-		// break;
-		// }
-		// if (children != null) {
-		// for (int j = 0; j < children.length; j++) {
-		// if (children[j].getID().equals(cats[i])) {
-		// root = children[j];
-		// break;
-		// }
-		// }
-		// }
-		//
-		// }
 
 		// replace '/' with points and remove leading '/'
 		if (m_catPath.startsWith("/")) {
@@ -309,9 +280,8 @@ public class JsonNodeDocuGenerator implements IApplication {
 			return hasChildren;
 
 		} else {
-			// if the repository object is neither a node nor a category
-			// (hence,
-			// most likely a metanode), we just ignore them for now
+			// if the repository object is neither a node nor a category (hence, most likely
+			// a metanode), we just ignore them for now
 			return false;
 		}
 
