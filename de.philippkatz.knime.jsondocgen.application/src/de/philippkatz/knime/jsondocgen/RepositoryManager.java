@@ -52,7 +52,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -84,7 +84,7 @@ import org.osgi.framework.Bundle;
  * {@link #readNodes()} and {@link #readNodes()}, the filtering of "deprecated"
  * nodes was removed, b/c they should be added to the documentation as well.
  * Check, if a node is deprecated through {@link #isDeprecated(String)}.
- * 
+ *
  * https://bitbucket.org/KNIME/knime-core/raw/642ae0a903ba9e0078221716ef8460d9a7a5bd47/org.knime.workbench.repository/src/eclipse/org/knime/workbench/repository/RepositoryManager.java
  *
  * @author Florian Georg, University of Konstanz
@@ -230,18 +230,14 @@ public final class RepositoryManager {
 	}
 
 	private void readNodes() {
-		IContainerObject uncategorized = m_root.findContainer("/uncategorized");
-		if (uncategorized == null) {
-			// this should never happen, but who knows...
-			uncategorized = m_root;
-		}
+		IContainerObject uncategorized = Optional.ofNullable(m_root.findContainer("/uncategorized"))
+				// this should never happen, but who knows...
+				.orElse(m_root);
 
-		Iterator<IConfigurationElement> it = Stream.of(RepositoryManager.getExtensions(ID_NODE))
-				.flatMap(ext -> Stream.of(ext.getConfigurationElements())).iterator();
+		Stream<IConfigurationElement> elementStream = Stream.of(RepositoryManager.getExtensions(ID_NODE))
+				.flatMap(ext -> Stream.of(ext.getConfigurationElements()));
 
-		while (it.hasNext()) {
-			IConfigurationElement elem = it.next();
-
+		elementStream.forEach(elem -> {
 			try {
 				NodeTemplate node = RepositoryFactory.createNode(elem);
 
@@ -301,8 +297,7 @@ public final class RepositoryManager {
 				}
 				LOGGER.error(message, t);
 			}
-
-		} // for configuration elements
+		}); // for configuration elements
 	}
 
 	private static boolean isDeprecated(IConfigurationElement elem) {
@@ -310,11 +305,11 @@ public final class RepositoryManager {
 	}
 
 	private void readNodeSets() {
-		Iterator<IConfigurationElement> it = Stream.of(RepositoryManager.getExtensions(ID_NODE_SET))
-				.flatMap(ext -> Stream.of(ext.getConfigurationElements())).iterator();
+		Stream<IConfigurationElement> elementStream = Stream.of(RepositoryManager.getExtensions(ID_NODE_SET))
+				.flatMap(ext -> Stream.of(ext.getConfigurationElements()));
 
-		while (it.hasNext()) {
-			IConfigurationElement elem = it.next();
+		elementStream.forEach(elem -> {
+
 			try {
 				Collection<DynamicNodeTemplate> dynamicNodeTemplates = RepositoryFactory.createNodeSet(m_root, elem);
 
@@ -356,7 +351,7 @@ public final class RepositoryManager {
 				}
 				LOGGER.error(message, t);
 			}
-		}
+		});
 	}
 
 	/**
@@ -444,7 +439,7 @@ public final class RepositoryManager {
 	/**
 	 * Get whether the node with the given ID is marked deprecated through the
 	 * extension point.
-	 * 
+	 *
 	 * @param id
 	 *            The node id.
 	 * @return <code>true</code> in case the node was marked deprecated.
