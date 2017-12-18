@@ -27,6 +27,9 @@ public class NodeDocJsonParserTest {
 
 		assertEquals("Find Elements", description.name);
 		assertEquals("Find WebElements.", description.description);
+		
+		assertTrue(description.intro.startsWith("<p>Extracts WebElements"));
+		assertTrue(description.intro.endsWith("Timeouts options.</p>"));
 
 		assertEquals(7, description.options.size());
 		assertEquals("Input", description.options.get(0).name);
