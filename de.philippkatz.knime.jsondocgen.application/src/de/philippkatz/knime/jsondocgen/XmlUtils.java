@@ -1,22 +1,18 @@
 package de.philippkatz.knime.jsondocgen;
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.io.StringWriter;
+import java.io.InputStream;
 import java.util.AbstractList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
@@ -27,8 +23,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.ls.DOMImplementationLS;
 import org.w3c.dom.ls.LSSerializer;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
 /**
  * Helper methods for working with the awful DOM API.
@@ -36,6 +30,8 @@ import org.xml.sax.SAXException;
  * @author pk
  */
 public final class XmlUtils {
+
+	private static final String REMOVE_NAMESPACE_XSLT = "remove-namespace.xslt";
 
 	/** Adapts a {@link NodeList} to {@link List} interface. */
 	private static final class NodeListAdapter extends AbstractList<Node> {
@@ -143,33 +139,29 @@ public final class XmlUtils {
 	}
 
 	/**
-	 * Re-parses the given node and produces a non-namespace-aware result (this is
-	 * easier to process by XPath, but can potentially lead to unexpected results,
-	 * because there might be name conflicts).
+	 * Strips namespace information form the given node, to ease further processing.
+	 * I took the XSLT transformation from <a href=
+	 * "http://clardeur.blogspot.de/2012/11/remove-all-namespaces-from-xml-using.html">here</a>.
 	 * 
 	 * @param node
-	 *            The node to re-parse.
-	 * @return Same as input, but not namespace-aware.
+	 *            The node.
+	 * @return A transformed node without namespace info.
 	 */
-	public static Node reParseWithoutNamespace(Node node) {
-		Objects.requireNonNull(node, "domNode must not be null");
+	public static Node removeNamespaces(Node node) {
+		Objects.requireNonNull(node, "node must not be null");
+		TransformerFactory transformerFactory = TransformerFactory.newInstance();
+		InputStream xslt = XmlUtils.class.getResourceAsStream(REMOVE_NAMESPACE_XSLT);
+		if (xslt == null) {
+			throw new IllegalStateException("Could not load " + REMOVE_NAMESPACE_XSLT + " -- InputStream == null");
+		}
+		DOMResult result = new DOMResult();
 		try {
-			String xmlString = nodeToString(node);
-			DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-			documentBuilderFactory.setNamespaceAware(false);
-			DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
-			return documentBuilder.parse(new InputSource(new StringReader(xmlString)));
-		} catch (ParserConfigurationException | SAXException | IOException | TransformerException e) {
+			Transformer transformer = transformerFactory.newTransformer(new StreamSource(xslt));
+			transformer.transform(new DOMSource(node), result);
+		} catch (TransformerException e) {
 			throw new IllegalStateException(e);
 		}
-	}
-
-	private static String nodeToString(Node node) throws TransformerException {
-		TransformerFactory transformerFactory = TransformerFactory.newInstance();
-		Transformer transformer = transformerFactory.newTransformer();
-		StringWriter writer = new StringWriter();
-		transformer.transform(new DOMSource(node), new StreamResult(writer));
-		return writer.getBuffer().toString();
+		return result.getNode();
 	}
 
 	private XmlUtils() {

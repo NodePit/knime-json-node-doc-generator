@@ -6,12 +6,11 @@ import static de.philippkatz.knime.jsondocgen.XmlUtils.getInnerXml;
 import static de.philippkatz.knime.jsondocgen.XmlUtils.getNode;
 import static de.philippkatz.knime.jsondocgen.XmlUtils.getNodes;
 import static de.philippkatz.knime.jsondocgen.XmlUtils.getString;
+import static de.philippkatz.knime.jsondocgen.XmlUtils.removeNamespaces;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
-import javax.xml.transform.TransformerException;
 
 import org.w3c.dom.Node;
 
@@ -29,24 +28,24 @@ public final class NodeDocJsonParser {
 		// only to be instantiated by Chuck Norris
 	}
 	
-	public static NodeDocBuilder parse(Node domNode, NodeDocBuilder builder) throws TransformerException {
+	public static NodeDocBuilder parse(Node domNode, NodeDocBuilder builder) {
 		Objects.requireNonNull(domNode, "document must not be null");
 		Objects.requireNonNull(builder, "builder must not be null");
 		
-		domNode = XmlUtils.reParseWithoutNamespace(domNode);
+		Node nodeNoNS = removeNamespaces(domNode);
 
-		builder.setName(trim(getString(domNode, "/knimeNode/name")));
-		builder.setDescription(trim(getString(domNode, "/knimeNode/shortDescription")));
-		Node introNode = getNode(domNode, "/knimeNode/fullDescription/intro");
+		builder.setName(trim(getString(nodeNoNS, "/knimeNode/name")));
+		builder.setDescription(trim(getString(nodeNoNS, "/knimeNode/shortDescription")));
+		Node introNode = getNode(nodeNoNS, "/knimeNode/fullDescription/intro");
 		if (introNode != null) {
 			builder.setIntro(trim(getInnerXml(introNode)));
 		}
-		builder.setType(getString(domNode, "/knimeNode/@type"));
-		builder.setDeprecated(Boolean.parseBoolean(getString(domNode, "/knimeNode/@deprecated")));
+		builder.setType(getString(nodeNoNS, "/knimeNode/@type"));
+		builder.setDeprecated(Boolean.parseBoolean(getString(nodeNoNS, "/knimeNode/@deprecated")));
 
 		// options are either children of fullDescription,
 		// or nested within tab elements
-		List<Node> tabs = getNodes(domNode, "/knimeNode/fullDescription/tab");
+		List<Node> tabs = getNodes(nodeNoNS, "/knimeNode/fullDescription/tab");
 		if (tabs.size() > 0) {
 			for (Node tab : tabs) {
 				String name = getAttribute(tab, "name");
@@ -61,15 +60,15 @@ public final class NodeDocJsonParser {
 				builder.addOptionTab(new OptionTab(name, parseOptions(options)));
 			}
 		} else {
-			builder.setOptions(parseOptions(getNodes(domNode, "/knimeNode/fullDescription/option")));
+			builder.setOptions(parseOptions(getNodes(nodeNoNS, "/knimeNode/fullDescription/option")));
 		}
 
 		// ports
-		builder.setInPorts(parsePorts(getNodes(domNode, "/knimeNode/ports/inPort"), true));
-		builder.setOutPorts(parsePorts(getNodes(domNode, "/knimeNode/ports/outPort"), false));
+		builder.setInPorts(parsePorts(getNodes(nodeNoNS, "/knimeNode/ports/inPort"), true));
+		builder.setOutPorts(parsePorts(getNodes(nodeNoNS, "/knimeNode/ports/outPort"), false));
 
 		// views
-		List<Node> views = getNodes(domNode, "/knimeNode/views/view");
+		List<Node> views = getNodes(nodeNoNS, "/knimeNode/views/view");
 		for (Node view : views) {
 			int index = Integer.valueOf(getAttribute(view, "index"));
 			String name = getAttribute(view, "name");
@@ -78,7 +77,7 @@ public final class NodeDocJsonParser {
 		}
 		
 		// interactive view
-		Node interactiveView = getNode(domNode, "/knimeNode/interactiveView");
+		Node interactiveView = getNode(nodeNoNS, "/knimeNode/interactiveView");
 		if (interactiveView != null) {
 			String name = getAttribute(interactiveView, "name");
 			String description = trim(getInnerXml(interactiveView));
@@ -88,7 +87,7 @@ public final class NodeDocJsonParser {
 		return builder;
 	}
 
-	/* package */ static NodeDoc parse(Node domNode) throws TransformerException {
+	/* package */ static NodeDoc parse(Node domNode) {
 		Objects.requireNonNull(domNode, "document must not be null");
 		NodeDocBuilder builder = new NodeDocBuilder();
 		parse(domNode, builder);

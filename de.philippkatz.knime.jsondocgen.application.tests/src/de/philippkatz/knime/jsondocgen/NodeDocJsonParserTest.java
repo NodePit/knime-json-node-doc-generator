@@ -66,8 +66,8 @@ public class NodeDocJsonParserTest {
 		assertFalse(nodeDoc.deprecated);
 		assertEquals("Box Plot (JavaScript)", nodeDoc.name);
 		assertEquals("This node provides a view with a Box Plot implemented with D3.js.", nodeDoc.description);
-		// FIXME assertTrue(nodeDoc.intro.startsWith("<p>"));
-		// FIXME assertTrue(nodeDoc.intro.endsWith("</p>"));
+		assertTrue(nodeDoc.intro.startsWith("<p>"));
+		assertTrue(nodeDoc.intro.endsWith("</p>"));
 		
 		assertEquals(3, nodeDoc.optionTabs.size());
 		assertEquals(4, nodeDoc.optionTabs.get(0).options.size());
