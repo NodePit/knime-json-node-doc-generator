@@ -38,6 +38,7 @@ Allowed options are:
 	-destination dir : directory where the result should be written to (directory must exist)
 	-plugin plugin-id : Only nodes of the specified plugin will be considered (specify multiple plugins by repeating this option). If not all available plugins will be processed.
 	-category category-path (e.g. /community) : Only nodes within the specified category path will be considered. If not specified '/' is used.
+	-includeDeprecated : Include nodes marked as 'deprecated' in the extension point.
 ```
 
 This example creates a JSON file in you home directory with the documentation for all
