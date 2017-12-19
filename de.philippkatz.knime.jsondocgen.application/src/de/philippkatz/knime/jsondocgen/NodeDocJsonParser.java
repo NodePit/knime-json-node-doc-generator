@@ -1,16 +1,17 @@
 package de.philippkatz.knime.jsondocgen;
 
-import java.io.StringWriter;
+import static de.philippkatz.knime.jsondocgen.Utils.trim;
+import static de.philippkatz.knime.jsondocgen.XmlUtils.getAttribute;
+import static de.philippkatz.knime.jsondocgen.XmlUtils.getInnerXml;
+import static de.philippkatz.knime.jsondocgen.XmlUtils.getNode;
+import static de.philippkatz.knime.jsondocgen.XmlUtils.getNodes;
+import static de.philippkatz.knime.jsondocgen.XmlUtils.getString;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Node;
 
@@ -21,9 +22,6 @@ import de.philippkatz.knime.jsondocgen.docs.NodeDoc.Option;
 import de.philippkatz.knime.jsondocgen.docs.NodeDoc.OptionTab;
 import de.philippkatz.knime.jsondocgen.docs.NodeDoc.Port;
 import de.philippkatz.knime.jsondocgen.docs.NodeDoc.View;
-import jodd.jerry.Jerry;
-import jodd.jerry.Jerry.JerryParser;
-import jodd.lagarto.dom.LagartoDOMBuilder;
 
 public final class NodeDocJsonParser {
 
@@ -35,120 +33,94 @@ public final class NodeDocJsonParser {
 		Objects.requireNonNull(domNode, "document must not be null");
 		Objects.requireNonNull(builder, "builder must not be null");
 		
-		String xmlString = documentToString(domNode);
+		domNode = XmlUtils.reParseWithoutNamespace(domNode);
 
-		// explicitly enable XML mode: http://jodd.org/doc/jerry/#configuration
-		JerryParser jerryParser = Jerry.jerry();
-		LagartoDOMBuilder domBuilder = (LagartoDOMBuilder) jerryParser.getDOMBuilder();
-		domBuilder.enableXmlMode();
-		Jerry jerry = jerryParser.parse(xmlString);
-
-		builder.setName(trim(jerry.$("knimeNode name").text()));
-		builder.setDescription(trim(jerry.$("knimeNode shortDescription").text()));
-		builder.setIntro(trim(jerry.$("knimeNode fullDescription intro").html()));
-		builder.setType(jerry.$("knimeNode").attr("type"));
-		builder.setDeprecated(parseOptionalBoolean(jerry.$("knimeNode").attr("deprecated")));
+		builder.setName(trim(getString(domNode, "/knimeNode/name")));
+		builder.setDescription(trim(getString(domNode, "/knimeNode/shortDescription")));
+		Node introNode = getNode(domNode, "/knimeNode/fullDescription/intro");
+		if (introNode != null) {
+			builder.setIntro(trim(getInnerXml(introNode)));
+		}
+		builder.setType(getString(domNode, "/knimeNode/@type"));
+		builder.setDeprecated(Boolean.parseBoolean(getString(domNode, "/knimeNode/@deprecated")));
 
 		// options are either children of fullDescription,
 		// or nested within tab elements
-		Jerry tabs = jerry.$("knimeNode fullDescription tab");
-		if (tabs.length() > 0) {
-			for (Jerry tab : tabs) {
-				String name = tab.attr("name");
-				List<Option> options = parseOptions(tab.$("option"));
-				builder.addOptionTab(new OptionTab(name, options));
+		List<Node> tabs = getNodes(domNode, "/knimeNode/fullDescription/tab");
+		if (tabs.size() > 0) {
+			for (Node tab : tabs) {
+				String name = getAttribute(tab, "name");
+				// first, try whether there's a sub-element 'options'; see:
+				// https://www.knime.org/node/dynamicNode_v3.0.xsd
+				// https://www.knime.org/node/dynamicJSNode_v3.0.xsd
+				List<Node> options = getNodes(tab, "./options/*");
+				// if not, use options present as children within tab
+				if (options.size() == 0) {
+					options = getNodes(tab, "option");
+				}
+				builder.addOptionTab(new OptionTab(name, parseOptions(options)));
 			}
 		} else {
-			builder.setOptions(parseOptions(jerry.$("knimeNode fullDescription option")));
+			builder.setOptions(parseOptions(getNodes(domNode, "/knimeNode/fullDescription/option")));
 		}
 
 		// ports
-		builder.setInPorts(parsePorts(jerry.$("knimeNode ports inPort"), true));
-		builder.setOutPorts(parsePorts(jerry.$("knimeNode ports outPort"), false));
+		builder.setInPorts(parsePorts(getNodes(domNode, "/knimeNode/ports/inPort"), true));
+		builder.setOutPorts(parsePorts(getNodes(domNode, "/knimeNode/ports/outPort"), false));
 
 		// views
-		Jerry views = jerry.$("knimeNode views view");
-		if (views.length() > 0) {
-			for (Jerry view : views) {
-				int index = Integer.valueOf(view.attr("index"));
-				String name = view.attr("name");
-				String description = trim(view.html());
-				builder.addView(new View(index, name, description));
-			}
+		List<Node> views = getNodes(domNode, "/knimeNode/views/view");
+		for (Node view : views) {
+			int index = Integer.valueOf(getAttribute(view, "index"));
+			String name = getAttribute(view, "name");
+			String description = trim(getInnerXml(view));
+			builder.addView(new View(index, name, description));
 		}
 		
 		// interactive view
-		Jerry interactiveView = jerry.$("knimeNode interactiveView");
-		if (interactiveView.size() > 0) {
-			String name = interactiveView.attr("name");
-			String description = trim(interactiveView.html());
+		Node interactiveView = getNode(domNode, "/knimeNode/interactiveView");
+		if (interactiveView != null) {
+			String name = getAttribute(interactiveView, "name");
+			String description = trim(getInnerXml(interactiveView));
 			builder.setInteractiveView(new InteractiveView(name, description));
 		}		
 		
 		return builder;
 	}
 
-	public static NodeDoc parse(Node domNode, String nodeIdentifier) throws TransformerException {
+	/* package */ static NodeDoc parse(Node domNode) throws TransformerException {
 		Objects.requireNonNull(domNode, "document must not be null");
 		NodeDocBuilder builder = new NodeDocBuilder();
 		parse(domNode, builder);
-		builder.setId(nodeIdentifier);
 		return builder.build();
 
 	}
 
-	public static String parseJsonString(Node domNode, String nodeIdentifier) throws TransformerException {
-		return parse(domNode, nodeIdentifier).toJson();
-	}
-
-	private static List<Option> parseOptions(Jerry options) {
+	private static List<Option> parseOptions(List<Node> options) {
 		List<Option> optionsJson = new ArrayList<>();
-		for (Jerry option : options) {
-			String name = option.attr("name");
-			String description = trim(option.html());
-			boolean optional = parseOptionalBoolean(option.attr("optional"));
-			optionsJson.add(new Option(name, description, optional));
+		for (Node option : options) {
+			String type = option.getNodeName();
+			String name = getAttribute(option, "name");
+			String description = trim(getInnerXml(option));
+			boolean optional = Boolean.parseBoolean(getAttribute(option, "optional"));
+			optionsJson.add(new Option(type, name, description, optional));
 		}
 		return optionsJson;
 	}
 
-	private static String trim(String string) {
-		return string != null ? string.trim() : null;
-	}
-
-	private static List<Port> parsePorts(Jerry ports, boolean isInPort) {
+	private static List<Port> parsePorts(List<Node> ports, boolean isInPort) {
 		List<Port> portsJson = new ArrayList<>();
-		for (Jerry port : ports) {
-			int index = Integer.valueOf(port.attr("index"));
-			String name = port.attr("name");
-			String description = trim(port.html());
+		for (Node port : ports) {
+			int index = Integer.valueOf(getAttribute(port, "index"));
+			String name = getAttribute(port, "name");
+			String description = trim(getInnerXml(port));
 			Boolean optional = null;
 			if (isInPort) {
-				optional = parseOptionalBoolean(port.attr("optional"));
+				optional = Boolean.parseBoolean(getAttribute(port, "optional"));
 			}
 			portsJson.add(new Port(index, name, description, optional));
 		}
 		return portsJson;
-	}
-
-	private static String documentToString(Node domNode) throws TransformerException {
-		TransformerFactory transformerFactory = TransformerFactory.newInstance();
-		Transformer transformer = transformerFactory.newTransformer();
-		StringWriter writer = new StringWriter();
-		transformer.transform(new DOMSource(domNode), new StreamResult(writer));
-		return writer.getBuffer().toString();
-	}
-	
-	/**
-	 * Parse ("true" | "false" | null) to a boolean.
-	 * 
-	 * @param string
-	 *            The string.
-	 * @return <code>true</code> in case the string was "true", <code>false</code>
-	 *         in case the string was "false" or <code>null</code>.
-	 */
-	private static boolean parseOptionalBoolean(String string) {
-		return Boolean.valueOf(Optional.ofNullable(string).orElse("false"));
 	}
 
 }

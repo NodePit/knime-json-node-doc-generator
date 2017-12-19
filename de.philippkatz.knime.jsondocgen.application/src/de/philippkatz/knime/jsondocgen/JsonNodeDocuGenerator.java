@@ -129,7 +129,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 	public Object start(final IApplicationContext context) throws Exception {
 		Object o = context.getArguments().get("application.args");
 		Display.getDefault();
-		if ((o != null) && (o instanceof String[])) {
+		if (o != null && o instanceof String[]) {
 			String[] args = (String[]) o;
 			for (int i = 0; i < args.length; i++) {
 				if (args[i].equals(DESTINATION_ARG)) {
@@ -242,7 +242,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 			builder.setContributingPlugin(current.getContributingPlugin());
 			builder.setIconBase64(getImageBase64(nodeTemplate.getIcon()));
 			builder.setStreamable(isStreamable(nodeTemplate));
-			builder.setAfterId(stringOrNull(nodeTemplate.getAfterID()));
+			builder.setAfterId(Utils.stringOrNull(nodeTemplate.getAfterID()));
 			boolean deprecated = RepositoryManager.INSTANCE.isDeprecated(current.getID());
 			builder.setDeprecated(deprecated);
 			if (!deprecated || m_includeDeprecated) {
@@ -264,7 +264,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 				builder.setDescription(category.getDescription());
 				builder.setContributingPlugin(category.getContributingPlugin());
 				builder.setIconBase64(getImageBase64(category.getIcon()));
-				builder.setAfterId(stringOrNull(category.getAfterID()));
+				builder.setAfterId(Utils.stringOrNull(category.getAfterID()));
 				newCategory = builder;
 			}
 
@@ -285,10 +285,6 @@ public class JsonNodeDocuGenerator implements IApplication {
 			return false;
 		}
 
-	}
-
-	private String stringOrNull(String string) {
-		return (string == null || string.isEmpty()) ? null : string;
 	}
 
 	private static String getImageBase64(Image image) {

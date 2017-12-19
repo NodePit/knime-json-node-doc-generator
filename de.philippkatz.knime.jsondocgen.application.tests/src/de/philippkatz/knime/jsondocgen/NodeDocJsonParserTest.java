@@ -15,53 +15,73 @@ import org.junit.Test;
 import org.w3c.dom.Document;
 
 import de.philippkatz.knime.jsondocgen.docs.NodeDoc;
+import de.philippkatz.knime.jsondocgen.docs.NodeDoc.Option;
 
 public class NodeDocJsonParserTest {
 	@Test
 	public void parsing_XML_with_plain_options() throws Exception {
 		Document doc = readDoc("/FindElementsNodeFactory.xml");
-		NodeDoc description = NodeDocJsonParser.parse(doc, (String) null);
+		NodeDoc nodeDoc = NodeDocJsonParser.parse(doc);
 		
-		assertEquals("Manipulator",description.type);
-		assertEquals(false, description.deprecated);
+		assertEquals("Manipulator",nodeDoc.type);
+		assertEquals(false, nodeDoc.deprecated);
 
-		assertEquals("Find Elements", description.name);
-		assertEquals("Find WebElements.", description.description);
+		assertEquals("Find Elements", nodeDoc.name);
+		assertEquals("Find WebElements.", nodeDoc.description);
 		
-		assertTrue(description.intro.startsWith("<p>Extracts WebElements"));
-		assertTrue(description.intro.endsWith("Timeouts options.</p>"));
+		assertTrue(nodeDoc.intro.startsWith("<p>Extracts WebElements"));
+		assertTrue(nodeDoc.intro.endsWith("Timeouts options.</p>"));
 
-		assertEquals(7, description.options.size());
-		assertEquals("Input", description.options.get(0).name);
+		assertEquals(7, nodeDoc.options.size());
+		assertEquals("Input", nodeDoc.options.get(0).name);
 		assertEquals("The input column providing the starting point where to search.",
-				description.options.get(0).description);
-		assertFalse(description.options.get(0).optional);
+				nodeDoc.options.get(0).description);
+		assertFalse(nodeDoc.options.get(0).optional);
 
-		assertEquals(1, description.inPorts.size());
-		assertEquals(0, description.inPorts.get(0).index);
-		assertEquals("WebDriver or WebElements", description.inPorts.get(0).name);
+		assertEquals(1, nodeDoc.inPorts.size());
+		assertEquals(0, nodeDoc.inPorts.get(0).index);
+		assertEquals("WebDriver or WebElements", nodeDoc.inPorts.get(0).name);
 		assertEquals("Table with a column providing a WebDriver or WebElements in which to search",
-				description.inPorts.get(0).description);
+				nodeDoc.inPorts.get(0).description);
 
-		assertEquals(1, description.outPorts.size());
-		assertTrue(description.toJson().replaceAll("\\s+", " ").contains("\"name\": \"Find Elements\""));
+		assertEquals(1, nodeDoc.outPorts.size());
+		assertTrue(nodeDoc.toJson().replaceAll("\\s+", " ").contains("\"name\": \"Find Elements\""));
 		
-		assertNull(description.interactiveView);
+		assertNull(nodeDoc.interactiveView);
 	}
 
 	@Test
 	public void parsing_XML_with_tab_options() throws Exception {
 		Document doc = readDoc("/StartWebDriverNodeFactory.xml");
-		NodeDoc description = NodeDocJsonParser.parse(doc, (String) null);
-		assertEquals(2, description.optionTabs.size());
-		assertEquals("Options", description.optionTabs.get(0).name);
+		NodeDoc nodeDoc = NodeDocJsonParser.parse(doc);
+		assertEquals(2, nodeDoc.optionTabs.size());
+		assertEquals("Options", nodeDoc.optionTabs.get(0).name);
 	}
 	
 	@Test
 	public void parsing_XML_dynamicJSNodes() throws Exception {
 		Document doc = readDoc("/dynamicJS/node.xml");
-		NodeDoc description = NodeDocJsonParser.parse(doc, (String) null);
-		assertEquals("Box Plot (JavaScript)", description.name);
+		NodeDoc nodeDoc = NodeDocJsonParser.parse(doc);
+		assertEquals("Visualizer", nodeDoc.type);
+		assertFalse(nodeDoc.deprecated);
+		assertEquals("Box Plot (JavaScript)", nodeDoc.name);
+		assertEquals("This node provides a view with a Box Plot implemented with D3.js.", nodeDoc.description);
+		// FIXME assertTrue(nodeDoc.intro.startsWith("<p>"));
+		// FIXME assertTrue(nodeDoc.intro.endsWith("</p>"));
+		
+		assertEquals(3, nodeDoc.optionTabs.size());
+		assertEquals(4, nodeDoc.optionTabs.get(0).options.size());
+		Option firstOption = nodeDoc.optionTabs.get(0).options.get(0);
+		assertEquals("columnFilterOption", firstOption.type);
+		assertEquals("Included columns", firstOption.name);
+		assertTrue(firstOption.description.startsWith("Select the columns"));
+		assertTrue(firstOption.description.endsWith("warning messages."));
+		
+		assertEquals("Box Plot", nodeDoc.interactiveView.name);
+		assertEquals("A JavaScript implementation of a Box Plot.", nodeDoc.interactiveView.description);
+		
+		assertEquals(1, nodeDoc.inPorts.size());
+		assertEquals(1, nodeDoc.outPorts.size());
 	}
 
 	private static Document readDoc(String resourcePath) throws Exception {
@@ -69,6 +89,9 @@ public class NodeDocJsonParserTest {
 		try (InputStream resourceStream = NodeDocJsonParserTest.class.getResourceAsStream(resourcePath)) {
 			Objects.requireNonNull(resourcePath, "resource for " + resourcePath + " not found");
 			DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+			// org.knime.core.node.NodeFactory.getXMLDescription() is namespaceAware:
+			// org.knime.core.node.NodeDescription.initializeDocumentBuilderFactory()
+			documentBuilderFactory.setNamespaceAware(true);
 			DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
 			return documentBuilder.parse(resourceStream);
 		}

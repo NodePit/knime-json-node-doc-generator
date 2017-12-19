@@ -88,10 +88,12 @@ public final class NodeDoc extends AbstractDoc {
 		}
 	}
 	public static final class Option {
+		public final String type;
 		public final String name;
 		public final String description;
 		public final boolean optional;
-		public Option(String name, String description, boolean optional) {
+		public Option(String type, String name, String description, boolean optional) {
+			this.type = type;
 			this.name = name;
 			this.description = description;
 			this.optional = optional;

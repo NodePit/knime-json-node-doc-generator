@@ -9,7 +9,15 @@ public final class Utils {
 		Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 		return gson.toJson(input);
 	}
-	
+
+	static String trim(String string) {
+		return string != null ? string.trim() : null;
+	}
+
+	static String stringOrNull(String string) {
+		return string == null || string.isEmpty() ? null : string;
+	}
+
 	private Utils() {
 		// nope!
 	}
