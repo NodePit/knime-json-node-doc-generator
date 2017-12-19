@@ -58,26 +58,31 @@ The generated JSON file’s structure looks as follows:
           "intro": "<p>This node allows interacting with JavaScript-based <a href=\"https://developer.mozilla.org/en-US/docs/Web/API/Window/alert\">alert</a>, \n        <a href=\"https://developer.mozilla.org/en-US/docs/Web/API/Window/confirm\">confirm</a>, and \n        <a href=\"https://developer.mozilla.org/en-US/docs/Web/API/Window/prompt\">prompt</a> dialog boxes. \n        When a WebBrowser shows a dialog, these can be dismissed or confirmed. Further, it allows to \n        extract a dialog's text and send keyboard input to the dialog. The node assumes, that a \n        dialog box is currently shown in the browser window.</p><p><b>Important:</b> This node does <b>not</b> work with headless browsers (PhantomJS, jBrowser, \n        HtmlUnit, headless Chrome). In case you want to influence the page's dialog behavior when running\n        headless browsers, you can directly modify the <tt>window.alert</tt>, <tt>window.confirm</tt>, \n        or <tt>window.prompt</tt> functions using an <b>Execute JavaScript</b> node, which needs to be \n        placed at a point in the workflow, before the dialog is actually shown. The following code\n        snippet gives a simple example how to globally override the default behavior:</p><pre>\nwindow.alert = function() {\n   // do nothing\n}\nwindow.confirm = function() {\n  return true; // simulate, that all 'confirm' dialogs are closed via 'OK' button\n}\nwindow.prompt = function() {\n  return 'dummy text'; // simulate, that the given string is entered into all 'prompt' dialogs\n}\n        </pre>",
           "options": [
             {
+              "type": "option",
               "name": "WebDriver input",
               "description": "Input column which provides the WebDriver(s)",
               "optional": false
             },
             {
+              "type": "option",
               "name": "Dismiss",
               "description": "Close the dialog by clicking the \"Cancel\" button.",
               "optional": false
             },
             {
+              "type": "option",
               "name": "Accept",
               "description": "Close the dialog by clicking the \"OK\" button.",
               "optional": false
             },
             {
+              "type": "option",
               "name": "Append column with text",
               "description": "Extract the dialog's message and append it as text column.",
               "optional": false
             },
             {
+              "type": "option",
               "name": "Send keys",
               "description": "The text to send to the dialog (in case it is a \"prompt\" dialog).",
               "optional": false
