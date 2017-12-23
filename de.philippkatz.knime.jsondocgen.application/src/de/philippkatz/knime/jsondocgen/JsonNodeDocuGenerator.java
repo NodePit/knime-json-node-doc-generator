@@ -52,9 +52,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Base64;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.xml.transform.TransformerException;
 
@@ -117,7 +117,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 	/* target directory */
 	private File m_directory;
 
-	private List<String> m_pluginId = new ArrayList<>();
+	private Set<String> m_pluginIds = new HashSet<>();
 
 	private String m_catPath = "/";
 
@@ -127,7 +127,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 	@Override
 	public Object start(final IApplicationContext context) throws Exception {
-		Object o = context.getArguments().get("application.args");
+		Object o = context.getArguments().get(IApplicationContext.APPLICATION_ARGS);
 		Display.getDefault();
 		if (o != null && o instanceof String[]) {
 			String[] args = (String[]) o;
@@ -137,7 +137,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 				} else if (args[i].equals(CATEGORY_ARG)) {
 					m_catPath = args[i + 1];
 				} else if (args[i].equals(PLUGIN_ARG)) {
-					m_pluginId.add(args[i + 1]);
+					m_pluginIds.add(args[i + 1]);
 				} else if (args[i].equals(INCLUDE_DEPRECATED_ARG)) {
 					m_includeDeprecated = true;
 				} else if (args[i].equals("-help")) {
@@ -221,7 +221,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 		if (current instanceof NodeTemplate) {
 
 			// skip node if not part of the specified plugin
-			if (!m_pluginId.isEmpty() && !m_pluginId.contains(current.getContributingPlugin())) {
+			if (!m_pluginIds.isEmpty() && !m_pluginIds.contains(current.getContributingPlugin())) {
 				return false;
 			}
 
