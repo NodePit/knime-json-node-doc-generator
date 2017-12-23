@@ -117,7 +117,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 	/* target directory */
 	private File m_directory;
 
-	private Set<String> m_pluginIds = new HashSet<>();
+	private final Set<String> m_pluginIds = new HashSet<>();
 
 	private String m_catPath = "/";
 
