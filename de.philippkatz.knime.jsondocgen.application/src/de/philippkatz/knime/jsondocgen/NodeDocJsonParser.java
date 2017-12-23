@@ -41,7 +41,12 @@ public final class NodeDocJsonParser {
 			builder.setIntro(trim(getInnerXml(introNode)));
 		}
 		builder.setType(getString(nodeNoNS, "/knimeNode/@type"));
-		builder.setDeprecated(Boolean.parseBoolean(getString(nodeNoNS, "/knimeNode/@deprecated")));
+		boolean deprecated = Boolean.parseBoolean(getString(nodeNoNS, "/knimeNode/@deprecated"));
+		if (deprecated) {
+			// there are two locations, where nodes can be set to deprecated:
+			// so, do not overwrite with false, if already set to true
+			builder.setDeprecated(true);
+		}
 
 		// options are either children of fullDescription,
 		// or nested within tab elements

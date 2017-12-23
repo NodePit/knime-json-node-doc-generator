@@ -244,7 +244,11 @@ public class JsonNodeDocuGenerator implements IApplication {
 			builder.setStreamable(isStreamable(nodeTemplate));
 			builder.setAfterId(Utils.stringOrNull(nodeTemplate.getAfterID()));
 			boolean deprecated = RepositoryManager.INSTANCE.isDeprecated(current.getID());
-			builder.setDeprecated(deprecated);
+			if (deprecated) {
+				// there are two locations, where nodes can be set to deprecated:
+				// so, do not overwrite with false, if already set to true
+				builder.setDeprecated(true);
+			}
 			if (!deprecated || m_includeDeprecated) {
 				parentCategory.addNode(builder.build());
 			}
