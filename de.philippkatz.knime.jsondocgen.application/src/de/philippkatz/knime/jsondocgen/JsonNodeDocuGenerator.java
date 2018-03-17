@@ -52,9 +52,17 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.xml.transform.TransformerException;
 
@@ -68,7 +76,10 @@ import org.eclipse.swt.graphics.ImageLoader;
 import org.eclipse.swt.widgets.Display;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeModel;
+import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.port.PortType;
+import org.knime.core.node.port.PortTypeRegistry;
 import org.knime.core.node.streamable.PartitionInfo;
 import org.knime.workbench.repository.model.Category;
 import org.knime.workbench.repository.model.IContainerObject;
@@ -79,7 +90,10 @@ import org.w3c.dom.Element;
 
 import de.philippkatz.knime.jsondocgen.docs.CategoryDoc;
 import de.philippkatz.knime.jsondocgen.docs.CategoryDoc.CategoryDocBuilder;
+import de.philippkatz.knime.jsondocgen.docs.NodeDoc;
 import de.philippkatz.knime.jsondocgen.docs.NodeDoc.NodeDocBuilder;
+import de.philippkatz.knime.jsondocgen.docs.PortTypeDoc;
+import de.philippkatz.knime.jsondocgen.docs.PortTypeDoc.PortTypeDocBuilder;
 
 /**
  * Creates a summary of the node descriptions of a all available KNIME nodes in
@@ -100,6 +114,10 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 	private static final String INCLUDE_DEPRECATED_ARG = "-includeDeprecated";
 
+	private static final String SKIP_NODE_DOCUMENTATION = "-skipNodeDocumentation";
+
+	private static final String SKIP_PORT_DOCUMENTATION = "-skipPortDocumentation";
+
 	private static void printUsage() {
 		System.err.println("Usage: NodeDocuGenerator options");
 		System.err.println("Allowed options are:");
@@ -111,6 +129,8 @@ public class JsonNodeDocuGenerator implements IApplication {
 				+ " category-path (e.g. /community) : Only nodes within the specified category path will be considered. If not specified '/' is used.");
 		System.err.println(
 				"\t" + INCLUDE_DEPRECATED_ARG + " : Include nodes marked as 'deprecated' in the extension point.");
+		System.err.println("\t" + SKIP_NODE_DOCUMENTATION + " : Skip generating node documentation");
+		System.err.println("\t" + SKIP_PORT_DOCUMENTATION + " : Skip generating port documentation");
 
 	}
 
@@ -122,6 +142,10 @@ public class JsonNodeDocuGenerator implements IApplication {
 	private String m_catPath = "/";
 
 	private boolean m_includeDeprecated = false;
+
+	private boolean m_skipNodeDocumentation = false;
+
+	private boolean m_skipPortDocumentation = false;
 
 	private CategoryDocBuilder rootCategoryDoc;
 
@@ -140,6 +164,10 @@ public class JsonNodeDocuGenerator implements IApplication {
 					m_pluginIds.add(args[i + 1]);
 				} else if (args[i].equals(INCLUDE_DEPRECATED_ARG)) {
 					m_includeDeprecated = true;
+				} else if (args[i].equals(SKIP_NODE_DOCUMENTATION)) {
+					m_skipNodeDocumentation = true;
+				} else if (args[i].equals(SKIP_PORT_DOCUMENTATION)) {
+					m_skipPortDocumentation = true;
 				} else if (args[i].equals("-help")) {
 					printUsage();
 					return EXIT_OK;
@@ -173,30 +201,121 @@ public class JsonNodeDocuGenerator implements IApplication {
 	 */
 	private void generate() throws Exception {
 
-		System.out.println("Reading node repository");
+		if (!m_skipNodeDocumentation) {
 
-		IRepositoryObject root = RepositoryManager.INSTANCE.getRoot();
-		rootCategoryDoc = new CategoryDocBuilder();
-		rootCategoryDoc.setId(root.getID());
-		rootCategoryDoc.setName(root.getName());
-		rootCategoryDoc.setContributingPlugin(root.getContributingPlugin());
+			System.out.println("Reading node repository");
 
-		// replace '/' with points and remove leading '/'
-		if (m_catPath.startsWith("/")) {
-			m_catPath = m_catPath.substring(1);
+			IRepositoryObject root = RepositoryManager.INSTANCE.getRoot();
+			rootCategoryDoc = new CategoryDocBuilder();
+			rootCategoryDoc.setId(root.getID());
+			rootCategoryDoc.setName(root.getName());
+			rootCategoryDoc.setContributingPlugin(root.getContributingPlugin());
+
+			// replace '/' with points and remove leading '/'
+			if (m_catPath.startsWith("/")) {
+				m_catPath = m_catPath.substring(1);
+			}
+			m_catPath = m_catPath.replaceAll("/", ".");
+
+			// recursively generate the node reference and the node description
+			// pages
+			generate(m_directory, root, null, rootCategoryDoc);
+
+			CategoryDoc rootCategory = rootCategoryDoc.build();
+			String resultJson = rootCategory.toJson();
+			File resultFile = new File(m_directory, "nodeDocumentation.json");
+			System.out.println("Writing nodes to " + resultFile);
+			IOUtils.write(resultJson, new FileOutputStream(resultFile), StandardCharsets.UTF_8);
+
 		}
-		m_catPath = m_catPath.replaceAll("/", ".");
 
-		// recursively generate the node reference and the node description
-		// pages
-		generate(m_directory, root, null, rootCategoryDoc);
+		if (!m_skipPortDocumentation) {
 
-		CategoryDoc rootCategory = rootCategoryDoc.build();
-		String resultJson = rootCategory.toJson();
-		File resultFile = new File(m_directory, "nodeDocumentation.json");
-		System.out.println("Writing result to " + resultFile);
-		IOUtils.write(resultJson, new FileOutputStream(resultFile), StandardCharsets.UTF_8);
+			Map<Class<? extends PortObject>, PortTypeDocBuilder> builders = new HashMap<>();
 
+			// all registered port types indexed by the PortObject class; read this only
+			// once from the registry and cache it, b/c the registry creates new PortTypes
+			// dynamically when requesting an unknown type
+			Map<Class<? extends PortObject>, PortType> portTypes = PortTypeRegistry.getInstance().availablePortTypes()
+					.stream().collect(Collectors.toMap(PortType::getPortObjectClass, Function.identity()));
+
+			processPorts(portTypes.keySet(), portTypes, builders);
+
+			// get the root element (all PortObjects inherit from this interface).
+			PortTypeDoc rootElement = builders.get(PortObject.class).build();
+
+			File portTypeResultFile = new File(m_directory, "portDocumentation.json");
+			System.out.println("Writing port types to " + portTypeResultFile);
+			IOUtils.write(Utils.toJson(rootElement), new FileOutputStream(portTypeResultFile), StandardCharsets.UTF_8);
+
+		}
+	}
+
+	/**
+	 * Process port type information (and recursively build the hierarchical
+	 * documentation structure).
+	 * 
+	 * @param portObjectClasses
+	 *            The {@link PortObject} classes to process.
+	 * @param registeredPortTypes
+	 *            All *registered* port types.
+	 * @param builders
+	 *            Map with builders for appending the children.
+	 */
+	private static void processPorts(Collection<Class<? extends PortObject>> portObjectClasses,
+			Map<Class<? extends PortObject>, PortType> registeredPortTypes,
+			Map<Class<? extends PortObject>, PortTypeDocBuilder> builders) {
+
+		portObjectClasses.forEach(portObjectClass -> {
+
+			PortTypeDoc.PortTypeDocBuilder builder = builders.get(portObjectClass);
+
+			List<Class<? extends PortObject>> parentPortObjectClasses = getParentPortObjectClasses(portObjectClass);
+
+			processPorts(parentPortObjectClasses, registeredPortTypes, builders);
+
+			if (builder == null) { // haven't processed this type yet
+				PortType parent = registeredPortTypes.get(portObjectClass);
+				if (parent != null) {
+					// parent port type is registered via extension point
+					builder = PortTypeDoc.builderForObjectClass(parent.getPortObjectClass().getName());
+					builder.setName(parent.getName());
+					builder.setSpecClass(parent.getPortObjectSpecClass().getName());
+					builder.setColor(Integer.toHexString(parent.getColor()));
+					builder.setHidden(parent.isHidden());
+					builder.setRegistered(true);
+				} else {
+					// not registered -- only create dummy intermediate; this is e.g. the case for
+					// org.knime.core.node.port.AbstractPortObject which only serve as
+					// implementation helper and are not supposed to be used directly
+					builder = PortTypeDoc.builderForObjectClass(portObjectClass.getName());
+					builder.setHidden(true);
+					builder.setRegistered(false);
+				}
+				builders.put(portObjectClass, builder);
+			}
+
+			for (Class<? extends PortObject> parent : parentPortObjectClasses) {
+				builders.get(parent).addChild(builder);
+			}
+		});
+	}
+
+	@SuppressWarnings("unchecked")
+	/* package */ static List<Class<? extends PortObject>> getParentPortObjectClasses(
+			Class<? extends PortObject> portObjectClass) {
+		List<Class<? extends PortObject>> result = new ArrayList<>();
+		Class<?> superClass = portObjectClass.getSuperclass();
+		if (superClass != null && superClass != Object.class && PortObject.class.isAssignableFrom(superClass)) {
+			result.add((Class<? extends PortObject>) superClass);
+		}
+		Class<?>[] interfaces = portObjectClass.getInterfaces();
+		for (Class<?> interFace : interfaces) {
+			if (PortObject.class.isAssignableFrom(interFace)) {
+				result.add((Class<? extends PortObject>) interFace);
+			}
+		}
+		return result;
 	}
 
 	/**
@@ -236,7 +355,9 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 			// create the JSON entry from the node XML description
 			NodeTemplate nodeTemplate = (NodeTemplate) current;
-			Element xmlDescription = nodeTemplate.createFactoryInstance().getXMLDescription();
+			NodeFactory<? extends NodeModel> factory = nodeTemplate.createFactoryInstance();
+
+			Element xmlDescription = factory.getXMLDescription();
 			NodeDocBuilder builder = NodeDocJsonParser.parse(xmlDescription, new NodeDocBuilder());
 			builder.setId(current.getID());
 			builder.setContributingPlugin(current.getContributingPlugin());
@@ -244,13 +365,27 @@ public class JsonNodeDocuGenerator implements IApplication {
 			builder.setStreamable(isStreamable(nodeTemplate));
 			builder.setAfterId(Utils.stringOrNull(nodeTemplate.getAfterID()));
 			boolean deprecated = RepositoryManager.INSTANCE.isDeprecated(current.getID());
+
+			// port type information -- extract this information separately and do not merge
+			// with the node description's port information, because the documentation and
+			// the actual implementation might be inconsistent.
+			NodeModel nodeModel = factory.createNodeModel();
+			PortType[] outPorts = getPorts(nodeModel, false);
+			builder.setOutPortObjectClasses(
+					Arrays.stream(outPorts).map(pt -> pt.getPortObjectClass().getName()).collect(Collectors.toList()));
+
+			PortType[] inPorts = getPorts(nodeModel, true);
+			builder.setInPortObjectClasses(
+					Arrays.stream(inPorts).map(pt -> pt.getPortObjectClass().getName()).collect(Collectors.toList()));
+
+			NodeDoc nodeDoc = builder.build();
 			if (deprecated) {
 				// there are two locations, where nodes can be set to deprecated:
 				// so, do not overwrite with false, if already set to true
 				builder.setDeprecated(true);
 			}
 			if (!deprecated || m_includeDeprecated) {
-				parentCategory.addNode(builder.build());
+				parentCategory.addNode(nodeDoc);
 			}
 
 			return true;
@@ -289,6 +424,37 @@ public class JsonNodeDocuGenerator implements IApplication {
 			return false;
 		}
 
+	}
+
+	/**
+	 * Get runtime port type information via reflection (this information cannot be
+	 * accessed via public API).
+	 * 
+	 * @param nodeModel
+	 *            The node model instance.
+	 * @param inPort
+	 *            <code>true</code> for input port, <code>false</code> for output
+	 *            port.
+	 * @return The port type information.
+	 * @throws Exception
+	 *             In case anything goes wrong.
+	 */
+	/* package */ static PortType[] getPorts(NodeModel nodeModel, boolean inPort) throws Exception {
+
+		Method getPortType = NodeModel.class.getDeclaredMethod(inPort ? "getInPortType" : "getOutPortType", int.class);
+		getPortType.setAccessible(true);
+
+		Method getNrPorts = NodeModel.class.getDeclaredMethod(inPort ? "getNrInPorts" : "getNrOutPorts");
+		getNrPorts.setAccessible(true);
+		int nrOutPorts = (int) getNrPorts.invoke(nodeModel);
+
+		PortType[] portTypes = new PortType[nrOutPorts];
+
+		for (int index = 0; index < nrOutPorts; index++) {
+			portTypes[index] = (PortType) getPortType.invoke(nodeModel, index);
+		}
+
+		return portTypes;
 	}
 
 	private static String getImageBase64(Image image) {

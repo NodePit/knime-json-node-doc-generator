@@ -15,6 +15,8 @@ public final class NodeDoc extends AbstractDoc {
 		private List<Option> options;
 		private List<Port> inPorts;
 		private List<Port> outPorts;
+		private List<String> inPortObjectClasses;
+		private List<String> outPortObjectClasses;
 		private List<View> views;
 		private String type;
 		private boolean deprecated;
@@ -38,6 +40,14 @@ public final class NodeDoc extends AbstractDoc {
 		}
 		public NodeDocBuilder setOutPorts(List<Port> outPorts) {
 			this.outPorts = outPorts;
+			return this;
+		}
+		public NodeDocBuilder setInPortObjectClasses(List<String> inPortObjectClasses) {
+			this.inPortObjectClasses = inPortObjectClasses;
+			return this;
+		}
+		public NodeDocBuilder setOutPortObjectClasses(List<String> outPortObjectClasses) {
+			this.outPortObjectClasses = outPortObjectClasses;
 			return this;
 		}
 		public NodeDocBuilder setViews(List<View> views) {
@@ -136,6 +146,8 @@ public final class NodeDoc extends AbstractDoc {
 	public final List<Option> options;
 	public final List<Port> inPorts;
 	public final List<Port> outPorts;
+	public final List<String> inPortObjectClasses;
+	public final List<String> outPortObjectClasses;
 	public final List<View> views;
 	public final String type;
 	public final boolean deprecated;
@@ -149,6 +161,8 @@ public final class NodeDoc extends AbstractDoc {
 		options = copyOrNull(builder.options);
 		inPorts = copyOrNull(builder.inPorts);
 		outPorts = copyOrNull(builder.outPorts);
+		inPortObjectClasses = copyOrNull(builder.inPortObjectClasses);
+		outPortObjectClasses = copyOrNull(builder.outPortObjectClasses);
 		views = copyOrNull(builder.views);
 		type = builder.type;
 		deprecated = builder.deprecated;
