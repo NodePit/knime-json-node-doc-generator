@@ -1,31 +1,27 @@
 package de.philippkatz.knime.jsondocgen.docs;
 
-import static de.philippkatz.knime.jsondocgen.docs.AbstractDoc.copyOrNull;
-
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class PortTypeDoc {
+
+	/** Use {@link PortTypeDoc#builderForObjectClass(String)} for instantiation. */
 	public static class PortTypeDocBuilder {
+		private final String objectClass;
 		private String name;
-		private String objectClass;
 		private String specClass;
 		private String color;
 		private boolean hidden;
+		private boolean registered;
+		private Set<PortTypeDocBuilder> children;
 
-		private List<String> ancestorObjectClasses;
-		private List<String> descendantObjectClasses;
-
-		private List<String> parentObjectClasses;
-		private List<String> childrenObjectClasses;
+		private PortTypeDocBuilder(String objectClass) {
+			this.objectClass = objectClass;
+		}
 
 		public PortTypeDocBuilder setName(String name) {
 			this.name = name;
-			return this;
-		}
-
-		public PortTypeDocBuilder setObjectClass(String objectClass) {
-			this.objectClass = objectClass;
 			return this;
 		}
 
@@ -44,41 +40,61 @@ public class PortTypeDoc {
 			return this;
 		}
 
-		public PortTypeDocBuilder addAncestorObjectClass(String ancestorObjectClass) {
-			if (ancestorObjectClasses == null) {
-				ancestorObjectClasses = new ArrayList<>();
+		/**
+		 * Adds a child if it is not already present (determined by 'objectClass').
+		 * 
+		 * @param child
+		 *            The child to add.
+		 * @return The builder instance.
+		 */
+		public PortTypeDocBuilder addChild(PortTypeDocBuilder child) {
+			if (children == null) {
+				children = new LinkedHashSet<>();
 			}
-			ancestorObjectClasses.add(ancestorObjectClass);
+			children.add(child);
 			return this;
 		}
 
-		public PortTypeDocBuilder addDescendantObjectClass(String descendantObjectClass) {
-			if (descendantObjectClasses == null) {
-				descendantObjectClasses = new ArrayList<>();
-			}
-			descendantObjectClasses.add(descendantObjectClass);
+		public PortTypeDocBuilder setRegistered(boolean registered) {
+			this.registered = registered;
 			return this;
 		}
 
-		public PortTypeDocBuilder addParentObjectClass(String parentObjectClass) {
-			if (parentObjectClasses == null) {
-				parentObjectClasses = new ArrayList<>();
-			}
-			parentObjectClasses.add(parentObjectClass);
-			return this;
-		}
-
-		public PortTypeDocBuilder addChildrenObjectClass(String childrenObjectClass) {
-			if (childrenObjectClasses == null) {
-				childrenObjectClasses = new ArrayList<>();
-			}
-			childrenObjectClasses.add(childrenObjectClass);
-			return this;
-		}
-		
 		public PortTypeDoc build() {
 			return new PortTypeDoc(this);
 		}
+
+		// hashCode + equals determined by its objectClass
+		// (necessary to avoid inserting duplicate children)
+
+		@Override
+		public int hashCode() {
+			return objectClass.hashCode();
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (obj == this) {
+				return true;
+			}
+			if (!(obj instanceof PortTypeDocBuilder)) {
+				return false;
+			}
+			PortTypeDocBuilder other = (PortTypeDocBuilder) obj;
+			return objectClass.equals(other.objectClass);
+		}
+
+	}
+
+	/**
+	 * Return a new builder.
+	 * 
+	 * @param objectClass
+	 *            The objectClass of the PortType.
+	 * @return A new builder instance.
+	 */
+	public static PortTypeDocBuilder builderForObjectClass(String objectClass) {
+		return new PortTypeDocBuilder(objectClass);
 	}
 
 	public final String name;
@@ -86,12 +102,8 @@ public class PortTypeDoc {
 	public final String specClass;
 	public final String color;
 	public final boolean hidden;
-
-	public final List<String> ancestorObjectClasses;
-	public final List<String> descendantObjectClasses;
-
-	public final List<String> parentObjectClasses;
-	public final List<String> childrenObjectClasses;
+	public final boolean registered;
+	public final Set<PortTypeDoc> children;
 
 	private PortTypeDoc(PortTypeDocBuilder builder) {
 		name = builder.name;
@@ -99,9 +111,14 @@ public class PortTypeDoc {
 		specClass = builder.specClass;
 		color = builder.color;
 		hidden = builder.hidden;
-		ancestorObjectClasses = copyOrNull(builder.ancestorObjectClasses);
-		descendantObjectClasses = copyOrNull(builder.descendantObjectClasses);
-		parentObjectClasses = copyOrNull(builder.parentObjectClasses);
-		childrenObjectClasses = copyOrNull(builder.childrenObjectClasses);
+		registered = builder.registered;
+		children = buildChildren(builder);
+	}
+
+	private static Set<PortTypeDoc> buildChildren(PortTypeDocBuilder builder) {
+		if (builder.children == null) {
+			return null;
+		}
+		return builder.children.stream().map(PortTypeDocBuilder::build).collect(Collectors.toSet());
 	}
 }

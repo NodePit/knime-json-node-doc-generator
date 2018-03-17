@@ -52,11 +52,16 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.xml.transform.TransformerException;
@@ -71,6 +76,7 @@ import org.eclipse.swt.graphics.ImageLoader;
 import org.eclipse.swt.widgets.Display;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeModel;
+import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.PortTypeRegistry;
@@ -87,6 +93,7 @@ import de.philippkatz.knime.jsondocgen.docs.CategoryDoc.CategoryDocBuilder;
 import de.philippkatz.knime.jsondocgen.docs.NodeDoc;
 import de.philippkatz.knime.jsondocgen.docs.NodeDoc.NodeDocBuilder;
 import de.philippkatz.knime.jsondocgen.docs.PortTypeDoc;
+import de.philippkatz.knime.jsondocgen.docs.PortTypeDoc.PortTypeDocBuilder;
 
 /**
  * Creates a summary of the node descriptions of a all available KNIME nodes in
@@ -224,21 +231,91 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 		if (!m_skipPortDocumentation) {
 
-			// write the port type information to a separate file
-			List<PortTypeDoc> portTypeDocs = PortTypeRegistry.getInstance().availablePortTypes().stream().map(pt -> {
-				PortTypeDoc.PortTypeDocBuilder portTypeDoc = new PortTypeDoc.PortTypeDocBuilder();
-				portTypeDoc.setName(pt.getName());
-				portTypeDoc.setObjectClass(pt.getPortObjectClass().getName());
-				portTypeDoc.setSpecClass(pt.getPortObjectSpecClass().getName());
-				portTypeDoc.setColor(Integer.toHexString(pt.getColor()));
-				portTypeDoc.setHidden(pt.isHidden());
-				return portTypeDoc.build();
-			}).collect(Collectors.toList());
+			Map<Class<? extends PortObject>, PortTypeDocBuilder> builders = new HashMap<>();
+
+			// all registered port types indexed by the PortObject class; read this only
+			// once from the registry and cache it, b/c the registry creates new PortTypes
+			// dynamically when requesting an unknown type
+			Map<Class<? extends PortObject>, PortType> portTypes = PortTypeRegistry.getInstance().availablePortTypes()
+					.stream().collect(Collectors.toMap(PortType::getPortObjectClass, Function.identity()));
+
+			processPorts(portTypes.keySet(), portTypes, builders);
+
+			// get the root element (all PortObjects inherit from this interface).
+			PortTypeDoc rootElement = builders.get(PortObject.class).build();
+
 			File portTypeResultFile = new File(m_directory, "portDocumentation.json");
 			System.out.println("Writing port types to " + portTypeResultFile);
-			IOUtils.write(Utils.toJson(portTypeDocs), new FileOutputStream(portTypeResultFile), StandardCharsets.UTF_8);
+			IOUtils.write(Utils.toJson(rootElement), new FileOutputStream(portTypeResultFile), StandardCharsets.UTF_8);
 
 		}
+	}
+
+	/**
+	 * Process port type information (and recursively build the hierarchical
+	 * documentation structure).
+	 * 
+	 * @param portObjectClasses
+	 *            The {@link PortObject} classes to process.
+	 * @param registeredPortTypes
+	 *            All *registered* port types.
+	 * @param builders
+	 *            Map with builders for appending the children.
+	 */
+	private static void processPorts(Collection<Class<? extends PortObject>> portObjectClasses,
+			Map<Class<? extends PortObject>, PortType> registeredPortTypes,
+			Map<Class<? extends PortObject>, PortTypeDocBuilder> builders) {
+
+		portObjectClasses.forEach(portObjectClass -> {
+
+			PortTypeDoc.PortTypeDocBuilder builder = builders.get(portObjectClass);
+
+			List<Class<? extends PortObject>> parentPortObjectClasses = getParentPortObjectClasses(portObjectClass);
+
+			processPorts(parentPortObjectClasses, registeredPortTypes, builders);
+
+			if (builder == null) { // haven't processed this type yet
+				PortType parent = registeredPortTypes.get(portObjectClass);
+				if (parent != null) {
+					// parent port type is registered via extension point
+					builder = PortTypeDoc.builderForObjectClass(parent.getPortObjectClass().getName());
+					builder.setName(parent.getName());
+					builder.setSpecClass(parent.getPortObjectSpecClass().getName());
+					builder.setColor(Integer.toHexString(parent.getColor()));
+					builder.setHidden(parent.isHidden());
+					builder.setRegistered(true);
+				} else {
+					// not registered -- only create dummy intermediate; this is e.g. the case for
+					// org.knime.core.node.port.AbstractPortObject which only serve as
+					// implementation helper and are not supposed to be used directly
+					builder = PortTypeDoc.builderForObjectClass(portObjectClass.getName());
+					builder.setHidden(true);
+					builder.setRegistered(false);
+				}
+				builders.put(portObjectClass, builder);
+			}
+
+			for (Class<? extends PortObject> parent : parentPortObjectClasses) {
+				builders.get(parent).addChild(builder);
+			}
+		});
+	}
+
+	@SuppressWarnings("unchecked")
+	private static List<Class<? extends PortObject>> getParentPortObjectClasses(
+			Class<? extends PortObject> portObjectClass) {
+		List<Class<? extends PortObject>> result = new ArrayList<>();
+		Class<?> superClass = portObjectClass.getSuperclass();
+		if (superClass != null && superClass != Object.class && PortObject.class.isAssignableFrom(superClass)) {
+			result.add((Class<? extends PortObject>) superClass);
+		}
+		Class<?>[] interfaces = portObjectClass.getInterfaces();
+		for (Class<?> interFace : interfaces) {
+			if (PortObject.class.isAssignableFrom(interFace)) {
+				result.add((Class<? extends PortObject>) interFace);
+			}
+		}
+		return result;
 	}
 
 	/**
