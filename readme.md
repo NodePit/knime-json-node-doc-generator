@@ -3,9 +3,9 @@ KNIME JSON Node Documentation Generator
 
 ![Run status](https://api.shippable.com/projects/590caf4e50a8640700690ab1/badge?branch=master)
 
-Builds a JSON file containing KNIME node documentations, based on and similar to
+Builds JSON files containing KNIME node and port documentations, based on and similar to
 KNIME’s `org.knime.workbench.repository.NodeDocumentationGenerator`, but with a
-structured JSON file as a result which can be easily further processed, mined
+structured JSON files as a result which can be easily further processed, mined
 and integrated in different environments. Originally created for the [Selenium Nodes][1]
 website where we display the node documentation on [this][3] page, and now also
 used for building [NodePit’s][4] node index.
@@ -40,16 +40,20 @@ Allowed options are:
 	-plugin plugin-id : Only nodes of the specified plugin will be considered (specify multiple plugins by repeating this option). If not all available plugins will be processed.
 	-category category-path (e.g. /community) : Only nodes within the specified category path will be considered. If not specified '/' is used.
 	-includeDeprecated : Include nodes marked as 'deprecated' in the extension point.
+	-skipNodeDocumentation : Skip generating node documentation
+	-skipPortDocumentation : Skip generating port documentation
 ```
 
-This example creates a JSON file in you home directory with the documentation for all
-Selenium nodes:
+This example creates two JSON file in you home directory:
+
+* `nodeDocumentation.json` with the documentation for all Selenium nodes
+* `portDocumentation.json` with a hierarchy of all available ports
 
 ```
 $ ./Knime -nosplash -application de.philippkatz.knime.jsondocgen.application.JsonNodeDocumentationGenerator -destination ~ -category /selenium
 ```
 
-The generated JSON file’s structure looks as follows:
+The generated `nodeDocumentation.json` JSON file’s structure looks as follows:
 
 ```json
 {
@@ -105,6 +109,12 @@ The generated JSON file’s structure looks as follows:
               "description": "Same as input table, and appended text column in case the \"Save text\" option was selected."
             }
           ],
+          "inPortObjectClasses": [
+            "org.knime.core.node.BufferedDataTable"
+          ],
+          "outPortObjectClasses": [
+            "org.knime.core.node.BufferedDataTable"
+          ],
           "type": "Manipulator",
           "deprecated": false,
           "streamable": false,
@@ -134,6 +144,46 @@ The generated JSON file’s structure looks as follows:
 }
 ```
 
+The generated `portDocumentation.json` JSON file’s structure looks as follows:
+
+```
+{
+  "name": "PortObject",
+  "objectClass": "org.knime.core.node.port.PortObject",
+  "specClass": "org.knime.core.node.port.PortObjectSpec",
+  "color": "ff9b9b9b",
+  "hidden": true,
+  "registered": true,
+  "children": [
+    {
+      "name": "WebDriver Factory",
+      "objectClass": "ws.palladian.nodes.selenium.ports.AbstractWebDriverFactoryPortObject",
+      "specClass": "org.knime.core.node.port.PortObjectSpec",
+      "color": "408e2f",
+      "hidden": false,
+      "registered": true,
+      "children": [
+        {
+          "name": "ws.palladian.nodes.selenium.WebDriverFactory2",
+          "objectClass": "ws.palladian.nodes.selenium.ports.WebDriverFactory2PortObject",
+          "specClass": "org.knime.core.node.port.PortObjectSpec",
+          "color": "408e2f",
+          "hidden": true,
+          "registered": true
+        },
+        {
+          "name": "ws.palladian.nodes.selenium.WebDriverFactory",
+          "objectClass": "ws.palladian.nodes.selenium.ports.WebDriverFactoryPortObject",
+          "specClass": "org.knime.core.node.port.PortObjectSpec",
+          "color": "408e2f",
+          "hidden": true,
+          "registered": true
+        }
+      ]
+    }
+  ]
+}
+```
 
 Contributing
 ------------
@@ -148,7 +198,7 @@ License
 
 - - -
 
-Copyright (c) 2017 Philipp Katz
+Copyright (c) 2017, 2018 Philipp Katz
 
 [1]: https://seleniumnodes.com
 [2]: https://github.com/qqilihq/knime-json-node-doc-generator/issues
