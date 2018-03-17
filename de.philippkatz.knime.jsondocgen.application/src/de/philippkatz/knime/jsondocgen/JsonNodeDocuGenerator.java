@@ -302,7 +302,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static List<Class<? extends PortObject>> getParentPortObjectClasses(
+	/* package */ static List<Class<? extends PortObject>> getParentPortObjectClasses(
 			Class<? extends PortObject> portObjectClass) {
 		List<Class<? extends PortObject>> result = new ArrayList<>();
 		Class<?> superClass = portObjectClass.getSuperclass();
@@ -439,7 +439,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 	 * @throws Exception
 	 *             In case anything goes wrong.
 	 */
-	private static PortType[] getPorts(NodeModel nodeModel, boolean inPort) throws Exception {
+	/* package */ static PortType[] getPorts(NodeModel nodeModel, boolean inPort) throws Exception {
 
 		Method getPortType = NodeModel.class.getDeclaredMethod(inPort ? "getInPortType" : "getOutPortType", int.class);
 		getPortType.setAccessible(true);
