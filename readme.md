@@ -3,7 +3,7 @@ KNIME JSON Node Documentation Generator
 
 ![Run status](https://api.shippable.com/projects/590caf4e50a8640700690ab1/badge?branch=master)
 
-Builds JSON files containing KNIME node and port documentations, based on and similar to
+Builds JSON files containing KNIME node, port, and splash icon documentations, based on and similar to
 KNIME’s `org.knime.workbench.repository.NodeDocumentationGenerator`, but with a
 structured JSON files as a result which can be easily further processed, mined
 and integrated in different environments. Originally created for the [Selenium Nodes][1]
@@ -42,12 +42,15 @@ Allowed options are:
 	-includeDeprecated : Include nodes marked as 'deprecated' in the extension point.
 	-skipNodeDocumentation : Skip generating node documentation
 	-skipPortDocumentation : Skip generating port documentation
+	-skipSplashIcons : Skip extracting splash screen icons
 ```
 
-This example creates two JSON file in you home directory:
+This example creates three JSON file in you home directory
+(all images within the JSON files are encoded as [Base64][5] strings):
 
 * `nodeDocumentation.json` with the documentation for all Selenium nodes
 * `portDocumentation.json` with a hierarchy of all available ports
+* `splashIcons.json`: list of all registered splash screen icons
 
 ```
 $ ./Knime -nosplash -application de.philippkatz.knime.jsondocgen.application.JsonNodeDocumentationGenerator -destination ~ -category /selenium
@@ -185,6 +188,21 @@ The generated `portDocumentation.json` JSON file’s structure looks as follows:
 }
 ```
 
+The generated `portDocumentation.json` JSON file’s structure looks as follows:
+
+```
+[
+  {
+    "id": "selenium",
+    "contributingPlugin": "ws.palladian.nodes.selenium.plugin",
+    "tooltip": "Selenium",
+    "icon": "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAADk0lEQVR4nOWZDXHzMAyGDSEQAqEQDCEQDCEQzKAQCqEQAiEQAiEQsr5blCmaZLtxm353n+50u8v8o0eWbNl17rj0D50fulTq8NDLEQOWZakyvtZwrnBEeybAzvNt2y4xxm/13puGhhBSba5nAVz4xJfLZZnneeFyvV53xjVNs4zjuGtzu90kwHQWgOcTS8NIsCrUBl7XpOs6CXEKQOSTWsLDZBgGtQ3APg4wTZNqHEKL2tzvd7VN3/efB0BiSoHHeRushhTkDXLjEwBeTPodyzAairBQDNvaQLAifIXOBoDclMlr9X4mACS4n1OUtOZURv/2bICPyzMAOLywxDkv4zAaKjS6J1ZCAjTup8aJTCE+Y/SrFU7q1rmvK9h9tSdYABene9etnc8EIIjGmHvQACZjoNrkrNExYVfkAL5mIuznOKh47XMS3HEAHFSoJrXTFd9TJfULdQOIiUaD/AZPy/JZE6VQO+rpKgAnv1mF2ZsAmhqAQQIgdLjg4kJ1D/6isEN1ijvCq8KkBOBaCsCrShiq9QNIKqEp6QvzpAhgMBrQHXWLwxIAS1GNyrsDcgmrlgGw8iALENcBtv/LEMKOU7J9avcBLgmIlH0+BxC0AaztE7U+ckILDX5vxiogwfk343JTDeC1ATCRdY3kK0PtEfMkMrn5XdlYBYiVo8cACAJGps4D2kb5lZMOOVKsmGyvAETDvvYwAFfaVWAAXxnA4f/Wk4oFrADcjLmz50BfApAKLwI7CDBl5s8CRM0DuV2Hx7UEoCTXVBl3WOeflHlmDmA91NIAGyA9EcJIDQT/53lBxpGgDJF9EgcanUOmbUumGv0DIF/Y6BkFCu9y4ykHoPw7IGA0f2ZRHrgohNsaAEqiSN61nghzMV2SB8o7kc85lwAsSgLo+Dcq2FIiX6ehfMvkkign6I5u5ufCrpTWvdf0AkIAnsXeTqcwQiGV5PQ7AsII/dDeOIFnGb5CWwnQOH27Si3jO5XyT3NsIKMX5V2IX+Bv67f2AwC0A8nXksiNlQDUeHS/rxHkCW113qkwlEcFldS791MJMLlfr7t1AHxDEvuTAfxq/LjawR0cNQD63UtK7wprohdr6/QH37BC/QHwBoAlOQNe1UfKzk4ZQlieUDjQpwCiY3kgAYL79wGwO/ltwP/p9wEpwdllbniyz5Tok5SjALvayFBpUEmfzj0pRwE0L2pere3zNoDSvby2TxHAF+Odd+SkF1qbAAAAAElFTkSuQmCC",
+    "icon24": "iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAABbElEQVR4nLWWDbWDMAyFkYAEJCABCUioBCTgAAmVgAQkIAEJSODtg6ULXcOAt+WcnDNYcm9+W7LsJe6h40OXf+r4xNqJ/wJwrF5HHv5ommaZpmnR4r1f8jy/Q7JmEsrSdd1iyTiOd0jA3h6qqjLBdSY3sth+4CxCiSRa/X6e5/sEwzAEoLZtg0FRFLssvkJAubSRRYAdweBL/5xz1zOwVJfuwzC8O1BrorGmhgAuDIM9RRBhXJbljoAotQ2E+l1UypcjUeOQEmqc6kld18lhUH3cp48hYCkiaaIBdI7gKCMGIQaihJQo7sspglRvYgJL3giIViKhTEd7YGWgVWFcXzQj0vObLJNhHRUpAnYGDFE12htQ3/fBiZnGAHC9gNJkfV/gJ0eGFrWk9qLFwmV0dEyIEIAuUbhwjhzJSuyILr71RBhrVZ71wnG6KdRf9wNg0o/PJZ4JSIjkWIkmEOxV/Kd9uKE+i8RlP/hs+QODqrFFftZOSwAAAABJRU5ErkJggg==",
+    "icon32": "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABwUlEQVR4nMVXDdGDMAxFAhKQgIRKQMIkIAEHSKgEJCABCUhAAh+PWz7SkLSMK9u7y91aSvKaP7KiCOE2GTZZNlkzy/LW7QoD/gGjlvhfGj+RcNqB1+u1TtO0cmCN/Ywk9nAMfLMsy5NhCTzHuQwEYDtMuHEco8Y5iQwEYPvYaJrGNKYhUziOhffedLUWGngrK4F5ngMDzrngsOahrARSyuGFnxKgJOUiCSIvEEp6jt+JXDkWy7IEBKqqunyTuq5PIZT5hDNRArIEsb5S71AsyWvAGUXfsWjbVn0JbjTY7zIMg/qeRqrve5sA2MXciGcgKW8hAcIWOegwCZA7U60YSrhHJHj54rdElAAJMjfmDR7PRwhwBbJDEhCOxwmQoCStViyBc9QHtHDeIqDdxiKQwm0CmrGsBGJt9hMCyJmu60wxCXAo9Xr6GKESUkl4QezbyYZzNQduV4Gse7gyNpBQx5Pg7VZr0yYBq94t0E1TnZMDhCSB/6EUt7zyVQN4klqzZIz0W/ahNBjLU991QBvL0bpTUAaTfSx3WrajzWqdj9qv1agQRu5FXAZ7xnAD2zv8pw0pg/hC4JskTsYJrvjy3/M/uJofbKxDOwUAAAAASUVORK5CYII="
+  }
+]
+```
+
 Contributing
 ------------
 
@@ -204,3 +222,4 @@ Copyright (c) 2017, 2018 Philipp Katz
 [2]: https://github.com/qqilihq/knime-json-node-doc-generator/issues
 [3]: https://seleniumnodes.com/docs
 [4]: https://nodepit.com
+[5]: https://en.wikipedia.org/wiki/Base64

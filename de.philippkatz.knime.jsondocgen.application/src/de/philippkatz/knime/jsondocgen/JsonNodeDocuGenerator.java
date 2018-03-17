@@ -47,14 +47,12 @@
  */
 package de.philippkatz.knime.jsondocgen;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -69,10 +67,6 @@ import javax.xml.transform.TransformerException;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.graphics.ImageLoader;
 import org.eclipse.swt.widgets.Display;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeModel;
@@ -94,6 +88,7 @@ import de.philippkatz.knime.jsondocgen.docs.NodeDoc;
 import de.philippkatz.knime.jsondocgen.docs.NodeDoc.NodeDocBuilder;
 import de.philippkatz.knime.jsondocgen.docs.PortTypeDoc;
 import de.philippkatz.knime.jsondocgen.docs.PortTypeDoc.PortTypeDocBuilder;
+import de.philippkatz.knime.jsondocgen.docs.SplashIconDoc;
 
 /**
  * Creates a summary of the node descriptions of a all available KNIME nodes in
@@ -118,6 +113,8 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 	private static final String SKIP_PORT_DOCUMENTATION = "-skipPortDocumentation";
 
+	private static final String SKIP_SPLASH_ICONS = "-skipSplashIcons";
+
 	private static void printUsage() {
 		System.err.println("Usage: NodeDocuGenerator options");
 		System.err.println("Allowed options are:");
@@ -131,6 +128,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 				"\t" + INCLUDE_DEPRECATED_ARG + " : Include nodes marked as 'deprecated' in the extension point.");
 		System.err.println("\t" + SKIP_NODE_DOCUMENTATION + " : Skip generating node documentation");
 		System.err.println("\t" + SKIP_PORT_DOCUMENTATION + " : Skip generating port documentation");
+		System.err.println("\t" + SKIP_SPLASH_ICONS + " : Skip extracting splash screen icons");
 
 	}
 
@@ -146,6 +144,8 @@ public class JsonNodeDocuGenerator implements IApplication {
 	private boolean m_skipNodeDocumentation = false;
 
 	private boolean m_skipPortDocumentation = false;
+
+	private boolean m_skipSplashIcons = false;
 
 	private CategoryDocBuilder rootCategoryDoc;
 
@@ -168,6 +168,8 @@ public class JsonNodeDocuGenerator implements IApplication {
 					m_skipNodeDocumentation = true;
 				} else if (args[i].equals(SKIP_PORT_DOCUMENTATION)) {
 					m_skipPortDocumentation = true;
+				} else if (args[i].equals(SKIP_SPLASH_ICONS)) {
+					m_skipSplashIcons = true;
 				} else if (args[i].equals("-help")) {
 					printUsage();
 					return EXIT_OK;
@@ -248,6 +250,14 @@ public class JsonNodeDocuGenerator implements IApplication {
 			System.out.println("Writing port types to " + portTypeResultFile);
 			IOUtils.write(Utils.toJson(rootElement), new FileOutputStream(portTypeResultFile), StandardCharsets.UTF_8);
 
+		}
+
+		if (!m_skipSplashIcons) {
+			List<SplashIconDoc> splashIcons = SplashIconReader.readSplashIcons();
+			File splashIconsResultFile = new File(m_directory, "splashIcons.json");
+			System.out.println("Writing splash icons to " + splashIconsResultFile);
+			IOUtils.write(Utils.toJson(splashIcons), new FileOutputStream(splashIconsResultFile),
+					StandardCharsets.UTF_8);
 		}
 	}
 
@@ -361,7 +371,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 			NodeDocBuilder builder = NodeDocJsonParser.parse(xmlDescription, new NodeDocBuilder());
 			builder.setId(current.getID());
 			builder.setContributingPlugin(current.getContributingPlugin());
-			builder.setIconBase64(getImageBase64(nodeTemplate.getIcon()));
+			builder.setIconBase64(Utils.getImageBase64(nodeTemplate.getIcon()));
 			builder.setStreamable(isStreamable(nodeTemplate));
 			builder.setAfterId(Utils.stringOrNull(nodeTemplate.getAfterID()));
 			boolean deprecated = RepositoryManager.INSTANCE.isDeprecated(current.getID());
@@ -402,7 +412,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 				builder.setName(category.getName());
 				builder.setDescription(category.getDescription());
 				builder.setContributingPlugin(category.getContributingPlugin());
-				builder.setIconBase64(getImageBase64(category.getIcon()));
+				builder.setIconBase64(Utils.getImageBase64(category.getIcon()));
 				builder.setAfterId(Utils.stringOrNull(category.getAfterID()));
 				newCategory = builder;
 			}
@@ -455,14 +465,6 @@ public class JsonNodeDocuGenerator implements IApplication {
 		}
 
 		return portTypes;
-	}
-
-	private static String getImageBase64(Image image) {
-		ImageLoader imageLoader = new ImageLoader();
-		imageLoader.data = new ImageData[] { image.getImageData() };
-		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		imageLoader.save(stream, SWT.IMAGE_PNG);
-		return new String(Base64.getEncoder().encode(stream.toByteArray()));
 	}
 
 	/**
