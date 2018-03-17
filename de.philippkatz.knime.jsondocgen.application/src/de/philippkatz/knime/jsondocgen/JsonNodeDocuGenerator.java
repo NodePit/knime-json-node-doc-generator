@@ -107,6 +107,10 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 	private static final String INCLUDE_DEPRECATED_ARG = "-includeDeprecated";
 
+	private static final String SKIP_NODE_DOCUMENTATION = "-skipNodeDocumentation";
+
+	private static final String SKIP_PORT_DOCUMENTATION = "-skipPortDocumentation";
+
 	private static void printUsage() {
 		System.err.println("Usage: NodeDocuGenerator options");
 		System.err.println("Allowed options are:");
@@ -118,6 +122,8 @@ public class JsonNodeDocuGenerator implements IApplication {
 				+ " category-path (e.g. /community) : Only nodes within the specified category path will be considered. If not specified '/' is used.");
 		System.err.println(
 				"\t" + INCLUDE_DEPRECATED_ARG + " : Include nodes marked as 'deprecated' in the extension point.");
+		System.err.println("\t" + SKIP_NODE_DOCUMENTATION + " : Skip generating node documentation");
+		System.err.println("\t" + SKIP_PORT_DOCUMENTATION + " : Skip generating port documentation");
 
 	}
 
@@ -129,6 +135,10 @@ public class JsonNodeDocuGenerator implements IApplication {
 	private String m_catPath = "/";
 
 	private boolean m_includeDeprecated = false;
+
+	private boolean m_skipNodeDocumentation = false;
+
+	private boolean m_skipPortDocumentation = false;
 
 	private CategoryDocBuilder rootCategoryDoc;
 
@@ -147,6 +157,10 @@ public class JsonNodeDocuGenerator implements IApplication {
 					m_pluginIds.add(args[i + 1]);
 				} else if (args[i].equals(INCLUDE_DEPRECATED_ARG)) {
 					m_includeDeprecated = true;
+				} else if (args[i].equals(SKIP_NODE_DOCUMENTATION)) {
+					m_skipNodeDocumentation = true;
+				} else if (args[i].equals(SKIP_PORT_DOCUMENTATION)) {
+					m_skipPortDocumentation = true;
 				} else if (args[i].equals("-help")) {
 					printUsage();
 					return EXIT_OK;
@@ -180,43 +194,51 @@ public class JsonNodeDocuGenerator implements IApplication {
 	 */
 	private void generate() throws Exception {
 
-		System.out.println("Reading node repository");
+		if (!m_skipNodeDocumentation) {
 
-		IRepositoryObject root = RepositoryManager.INSTANCE.getRoot();
-		rootCategoryDoc = new CategoryDocBuilder();
-		rootCategoryDoc.setId(root.getID());
-		rootCategoryDoc.setName(root.getName());
-		rootCategoryDoc.setContributingPlugin(root.getContributingPlugin());
+			System.out.println("Reading node repository");
 
-		// replace '/' with points and remove leading '/'
-		if (m_catPath.startsWith("/")) {
-			m_catPath = m_catPath.substring(1);
+			IRepositoryObject root = RepositoryManager.INSTANCE.getRoot();
+			rootCategoryDoc = new CategoryDocBuilder();
+			rootCategoryDoc.setId(root.getID());
+			rootCategoryDoc.setName(root.getName());
+			rootCategoryDoc.setContributingPlugin(root.getContributingPlugin());
+
+			// replace '/' with points and remove leading '/'
+			if (m_catPath.startsWith("/")) {
+				m_catPath = m_catPath.substring(1);
+			}
+			m_catPath = m_catPath.replaceAll("/", ".");
+
+			// recursively generate the node reference and the node description
+			// pages
+			generate(m_directory, root, null, rootCategoryDoc);
+
+			CategoryDoc rootCategory = rootCategoryDoc.build();
+			String resultJson = rootCategory.toJson();
+			File resultFile = new File(m_directory, "nodeDocumentation.json");
+			System.out.println("Writing nodes to " + resultFile);
+			IOUtils.write(resultJson, new FileOutputStream(resultFile), StandardCharsets.UTF_8);
+
 		}
-		m_catPath = m_catPath.replaceAll("/", ".");
 
-		// recursively generate the node reference and the node description
-		// pages
-		generate(m_directory, root, null, rootCategoryDoc);
+		if (!m_skipPortDocumentation) {
 
-		CategoryDoc rootCategory = rootCategoryDoc.build();
-		String resultJson = rootCategory.toJson();
-		File resultFile = new File(m_directory, "nodeDocumentation.json");
-		System.out.println("Writing nodes to " + resultFile);
-		IOUtils.write(resultJson, new FileOutputStream(resultFile), StandardCharsets.UTF_8);
+			// write the port type information to a separate file
+			List<PortTypeDoc> portTypeDocs = PortTypeRegistry.getInstance().availablePortTypes().stream().map(pt -> {
+				PortTypeDoc.PortTypeDocBuilder portTypeDoc = new PortTypeDoc.PortTypeDocBuilder();
+				portTypeDoc.setName(pt.getName());
+				portTypeDoc.setObjectClass(pt.getPortObjectClass().getName());
+				portTypeDoc.setSpecClass(pt.getPortObjectSpecClass().getName());
+				portTypeDoc.setColor(Integer.toHexString(pt.getColor()));
+				portTypeDoc.setHidden(pt.isHidden());
+				return portTypeDoc.build();
+			}).collect(Collectors.toList());
+			File portTypeResultFile = new File(m_directory, "portDocumentation.json");
+			System.out.println("Writing port types to " + portTypeResultFile);
+			IOUtils.write(Utils.toJson(portTypeDocs), new FileOutputStream(portTypeResultFile), StandardCharsets.UTF_8);
 
-		// write the port type information to a separate file
-		List<PortTypeDoc> portTypeDocs = PortTypeRegistry.getInstance().availablePortTypes().stream().map(pt -> {
-			PortTypeDoc.PortTypeDocBuilder portTypeDoc = new PortTypeDoc.PortTypeDocBuilder();
-			portTypeDoc.setName(pt.getName());
-			portTypeDoc.setObjectClass(pt.getPortObjectClass().getName());
-			portTypeDoc.setSpecClass(pt.getPortObjectSpecClass().getName());
-			portTypeDoc.setColor(Integer.toHexString(pt.getColor()));
-			portTypeDoc.setHidden(pt.isHidden());
-			return portTypeDoc.build();
-		}).collect(Collectors.toList());
-		File portTypeResultFile = new File(m_directory, "portDocumentation.json");
-		System.out.println("Writing port types to " + portTypeResultFile);
-		IOUtils.write(Utils.toJson(portTypeDocs), new FileOutputStream(portTypeResultFile), StandardCharsets.UTF_8);
+		}
 	}
 
 	/**
@@ -257,7 +279,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 			// create the JSON entry from the node XML description
 			NodeTemplate nodeTemplate = (NodeTemplate) current;
 			NodeFactory<? extends NodeModel> factory = nodeTemplate.createFactoryInstance();
-			
+
 			Element xmlDescription = factory.getXMLDescription();
 			NodeDocBuilder builder = NodeDocJsonParser.parse(xmlDescription, new NodeDocBuilder());
 			builder.setId(current.getID());
@@ -266,7 +288,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 			builder.setStreamable(isStreamable(nodeTemplate));
 			builder.setAfterId(Utils.stringOrNull(nodeTemplate.getAfterID()));
 			boolean deprecated = RepositoryManager.INSTANCE.isDeprecated(current.getID());
-			
+
 			// port type information -- extract this information separately and do not merge
 			// with the node description's port information, because the documentation and
 			// the actual implementation might be inconsistent.
@@ -278,7 +300,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 			PortType[] inPorts = getPorts(nodeModel, true);
 			builder.setInPortObjectClasses(
 					Arrays.stream(inPorts).map(pt -> pt.getPortObjectClass().getName()).collect(Collectors.toList()));
-			
+
 			NodeDoc nodeDoc = builder.build();
 			if (deprecated) {
 				// there are two locations, where nodes can be set to deprecated:
