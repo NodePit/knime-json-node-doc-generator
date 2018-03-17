@@ -52,9 +52,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.xml.transform.TransformerException;
 
@@ -69,6 +71,7 @@ import org.eclipse.swt.widgets.Display;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.port.PortType;
 import org.knime.core.node.streamable.PartitionInfo;
 import org.knime.workbench.repository.model.Category;
 import org.knime.workbench.repository.model.IContainerObject;
@@ -79,6 +82,7 @@ import org.w3c.dom.Element;
 
 import de.philippkatz.knime.jsondocgen.docs.CategoryDoc;
 import de.philippkatz.knime.jsondocgen.docs.CategoryDoc.CategoryDocBuilder;
+import de.philippkatz.knime.jsondocgen.docs.NodeDoc;
 import de.philippkatz.knime.jsondocgen.docs.NodeDoc.NodeDocBuilder;
 
 /**
@@ -236,7 +240,9 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 			// create the JSON entry from the node XML description
 			NodeTemplate nodeTemplate = (NodeTemplate) current;
-			Element xmlDescription = nodeTemplate.createFactoryInstance().getXMLDescription();
+			NodeFactory<? extends NodeModel> factory = nodeTemplate.createFactoryInstance();
+			
+			Element xmlDescription = factory.getXMLDescription();
 			NodeDocBuilder builder = NodeDocJsonParser.parse(xmlDescription, new NodeDocBuilder());
 			builder.setId(current.getID());
 			builder.setContributingPlugin(current.getContributingPlugin());
@@ -244,13 +250,27 @@ public class JsonNodeDocuGenerator implements IApplication {
 			builder.setStreamable(isStreamable(nodeTemplate));
 			builder.setAfterId(Utils.stringOrNull(nodeTemplate.getAfterID()));
 			boolean deprecated = RepositoryManager.INSTANCE.isDeprecated(current.getID());
+			
+			// port type information -- extract this information separately and do not merge
+			// with the node description's port information, because the documentation and
+			// the actual implementation might be inconsistent.
+			NodeModel nodeModel = factory.createNodeModel();
+			PortType[] outPorts = getPorts(nodeModel, false);
+			builder.setOutPortObjectClasses(
+					Arrays.stream(outPorts).map(pt -> pt.getPortObjectClass().getName()).collect(Collectors.toList()));
+
+			PortType[] inPorts = getPorts(nodeModel, true);
+			builder.setInPortObjectClasses(
+					Arrays.stream(inPorts).map(pt -> pt.getPortObjectClass().getName()).collect(Collectors.toList()));
+			
+			NodeDoc nodeDoc = builder.build();
 			if (deprecated) {
 				// there are two locations, where nodes can be set to deprecated:
 				// so, do not overwrite with false, if already set to true
 				builder.setDeprecated(true);
 			}
 			if (!deprecated || m_includeDeprecated) {
-				parentCategory.addNode(builder.build());
+				parentCategory.addNode(nodeDoc);
 			}
 
 			return true;
@@ -289,6 +309,37 @@ public class JsonNodeDocuGenerator implements IApplication {
 			return false;
 		}
 
+	}
+
+	/**
+	 * Get runtime port type information via reflection (this information cannot be
+	 * accessed via public API).
+	 * 
+	 * @param nodeModel
+	 *            The node model instance.
+	 * @param inPort
+	 *            <code>true</code> for input port, <code>false</code> for output
+	 *            port.
+	 * @return The port type information.
+	 * @throws Exception
+	 *             In case anything goes wrong.
+	 */
+	private static PortType[] getPorts(NodeModel nodeModel, boolean inPort) throws Exception {
+
+		Method getPortType = NodeModel.class.getDeclaredMethod(inPort ? "getInPortType" : "getOutPortType", int.class);
+		getPortType.setAccessible(true);
+
+		Method getNrPorts = NodeModel.class.getDeclaredMethod(inPort ? "getNrInPorts" : "getNrOutPorts");
+		getNrPorts.setAccessible(true);
+		int nrOutPorts = (int) getNrPorts.invoke(nodeModel);
+
+		PortType[] portTypes = new PortType[nrOutPorts];
+
+		for (int index = 0; index < nrOutPorts; index++) {
+			portTypes[index] = (PortType) getPortType.invoke(nodeModel, index);
+		}
+
+		return portTypes;
 	}
 
 	private static String getImageBase64(Image image) {
