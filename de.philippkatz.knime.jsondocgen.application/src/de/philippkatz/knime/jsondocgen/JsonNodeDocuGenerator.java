@@ -55,6 +55,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -72,6 +73,7 @@ import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
+import org.knime.core.node.port.PortTypeRegistry;
 import org.knime.core.node.streamable.PartitionInfo;
 import org.knime.workbench.repository.model.Category;
 import org.knime.workbench.repository.model.IContainerObject;
@@ -84,6 +86,7 @@ import de.philippkatz.knime.jsondocgen.docs.CategoryDoc;
 import de.philippkatz.knime.jsondocgen.docs.CategoryDoc.CategoryDocBuilder;
 import de.philippkatz.knime.jsondocgen.docs.NodeDoc;
 import de.philippkatz.knime.jsondocgen.docs.NodeDoc.NodeDocBuilder;
+import de.philippkatz.knime.jsondocgen.docs.PortTypeDoc;
 
 /**
  * Creates a summary of the node descriptions of a all available KNIME nodes in
@@ -198,9 +201,22 @@ public class JsonNodeDocuGenerator implements IApplication {
 		CategoryDoc rootCategory = rootCategoryDoc.build();
 		String resultJson = rootCategory.toJson();
 		File resultFile = new File(m_directory, "nodeDocumentation.json");
-		System.out.println("Writing result to " + resultFile);
+		System.out.println("Writing nodes to " + resultFile);
 		IOUtils.write(resultJson, new FileOutputStream(resultFile), StandardCharsets.UTF_8);
 
+		// write the port type information to a separate file
+		List<PortTypeDoc> portTypeDocs = PortTypeRegistry.getInstance().availablePortTypes().stream().map(pt -> {
+			PortTypeDoc.PortTypeDocBuilder portTypeDoc = new PortTypeDoc.PortTypeDocBuilder();
+			portTypeDoc.setName(pt.getName());
+			portTypeDoc.setObjectClass(pt.getPortObjectClass().getName());
+			portTypeDoc.setSpecClass(pt.getPortObjectSpecClass().getName());
+			portTypeDoc.setColor(Integer.toHexString(pt.getColor()));
+			portTypeDoc.setHidden(pt.isHidden());
+			return portTypeDoc.build();
+		}).collect(Collectors.toList());
+		File portTypeResultFile = new File(m_directory, "portDocumentation.json");
+		System.out.println("Writing port types to " + portTypeResultFile);
+		IOUtils.write(Utils.toJson(portTypeDocs), new FileOutputStream(portTypeResultFile), StandardCharsets.UTF_8);
 	}
 
 	/**
