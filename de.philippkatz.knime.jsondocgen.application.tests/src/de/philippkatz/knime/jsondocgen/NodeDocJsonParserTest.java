@@ -79,9 +79,46 @@ public class NodeDocJsonParserTest {
 		
 		assertEquals("Box Plot", nodeDoc.interactiveView.name);
 		assertEquals("A JavaScript implementation of a Box Plot.", nodeDoc.interactiveView.description);
-		
+
 		assertEquals(1, nodeDoc.inPorts.size());
 		assertEquals(1, nodeDoc.outPorts.size());
+	}
+
+	@Test
+	public void parsing_XML_with_data_in_out_ports() throws Exception {
+		Document doc = readDoc("/GlideSortNodeFactory.xml");
+		NodeDoc nodeDoc = NodeDocJsonParser.parse(doc);
+
+		assertEquals("Source", nodeDoc.type);
+		assertEquals(false, nodeDoc.deprecated);
+
+		assertEquals("Glide Sort Results", nodeDoc.name);
+
+		assertTrue(nodeDoc.description.startsWith("Pose-viewer data"));
+		assertTrue(nodeDoc.description.endsWith("lowest-scoring structures."));
+
+		assertTrue(nodeDoc.intro.startsWith("Pose-viewer data"));
+		assertTrue(nodeDoc.intro.endsWith("implement this node.<br/>"));
+
+		assertEquals(12, nodeDoc.options.size());
+		assertEquals("Sorting Options", nodeDoc.options.get(0).name);
+
+		assertEquals(1, nodeDoc.inPorts.size());
+		assertEquals(0, nodeDoc.inPorts.get(0).index);
+		assertEquals("Molecules in Maestro format", nodeDoc.inPorts.get(0).name);
+		assertEquals("Molecules in Maestro format", nodeDoc.inPorts.get(0).description);
+
+		assertEquals(1, nodeDoc.outPorts.size());
+		assertEquals(0, nodeDoc.outPorts.get(0).index);
+		assertEquals("Molecules in Maestro format", nodeDoc.outPorts.get(0).name);
+		assertEquals("Sorted molecules in Maestro format", nodeDoc.outPorts.get(0).description);
+
+		assertEquals(1, nodeDoc.views.size());
+		assertEquals(0, nodeDoc.views.get(0).index);
+		assertEquals("Std output/error of Sort Results", nodeDoc.views.get(0).name);
+		assertEquals("Std output/error of Sort Results", nodeDoc.views.get(0).description);
+
+		assertNull(nodeDoc.interactiveView);
 	}
 
 	private static Document readDoc(String resourcePath) throws Exception {
@@ -92,6 +129,9 @@ public class NodeDocJsonParserTest {
 			// org.knime.core.node.NodeFactory.getXMLDescription() is namespaceAware:
 			// org.knime.core.node.NodeDescription.initializeDocumentBuilderFactory()
 			documentBuilderFactory.setNamespaceAware(true);
+			// disable validation of external XSD for GlideSortNodeFactory.xml
+			documentBuilderFactory.setValidating(false);
+			documentBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
 			DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
 			return documentBuilder.parse(resourceStream);
 		}

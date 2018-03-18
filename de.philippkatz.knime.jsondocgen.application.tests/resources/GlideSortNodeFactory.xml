@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE knimeNode PUBLIC "-//UNIKN//DTD KNIME Node 1.0//EN" "http://www.inf.uni-konstanz.de/bioml/research/knime/Node.dtd">
+<knimeNode icon="../../icons/schrodinger64.png" type="Source">
+	<name>Glide Sort Results</name>
+	
+	<shortDescription>
+Pose-viewer data (mae format) are read in and the structures (CTs) in them are sorted by some score. 
+New pose-viewer output can then be generated from the nreport lowest-scoring structures.
+	</shortDescription>
+	
+	<fullDescription>
+<intro>Pose-viewer data (mae format) are read in and the structures (CTs) in them are sorted by some score. 
+New pose-viewer output can then be generated from the nreport lowest-scoring structures.
+
+	<h3>Backend implementation</h3>
+
+	<b>utilities/glide_sort</b><br/>
+	The glide_sort command line tool is used to implement this node.<br/>
+
+</intro>
+
+	
+	<option name="Sorting Options">There are multiple ways of sorting: "Docking Score", "GlideScore", "Coulomb-vdW Energy", "Emodel", 
+	a specified property that can be typed into the field, or "Do not sort"
+	</option>
+	
+	<option name="Retain only the n lowest-scoring poses">
+	</option>
+
+	<option name="Don't include receptor">Don't treat receptors specially.
+	</option>
+
+	<option name="Keep only single best pose">Keep only the single best pose for each ligand in each input pose file.
+	</option>
+
+	<option name="Best by">Keep the single best pose for each ligand with a given property. Value can be Ligand title ("s_m_title), 
+	Ligand number ("i_i_glide_lignum"), and user-defined (property entered into Best by Property field).
+	</option>
+	<option name="Best by Property">Field shows which property is used to keep the single best pose for each ligand. When user-defined 
+	"Best by" is selected, this field is editable.
+	</option>
+
+	<option name="Filter poses">Use filter cutoffs. (unchecked will not use filter cutoffs at all)
+	</option>
+
+	<option name="H-bond energy">Filter cutoff for H-bond energy (default = 0.0)
+	</option>
+
+	<option name="Coulomb-vdW energy">Filter cutoff for E(CvdW) (default = 0.0)
+	</option>
+
+	<option name="Metal-ligation energy">Filter cutoff for metal-ligation energy (default = 0.0)
+	</option>
+
+	<option name="Emodel">Filter cutoff for Emodel (not used by default)
+	</option>
+
+	<option name="Ignore Docking Score">
+	</option>
+	</fullDescription>
+	<ports>
+		<dataIn index="0" name="Molecules in Maestro format">Molecules in Maestro format</dataIn>
+		<dataOut index="0" name="Molecules in Maestro format">Sorted molecules in Maestro format</dataOut>
+
+	</ports>	
+	<views>
+		<view index="0" name="Std output/error of Sort Results">Std output/error of Sort Results</view>	
+	</views>
+
+</knimeNode>
