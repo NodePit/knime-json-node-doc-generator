@@ -69,16 +69,12 @@ public final class NodeDocJsonParser {
 		}
 
 		// in ports
-		List<Port> inPorts = new ArrayList<>();
-		inPorts.addAll(parsePorts(getNodes(nodeNoNS, "/knimeNode/ports/inPort"), true));
-		inPorts.addAll(parsePorts(getNodes(nodeNoNS, "/knimeNode/ports/dataIn"), true));
-		builder.setInPorts(inPorts);
+		builder.setInPorts(
+				parsePorts(getNodes(nodeNoNS, "/knimeNode/ports/*[name()='inPort' or name()='dataIn']"), true));
 
 		// out ports
-		List<Port> outPorts = new ArrayList<>();
-		outPorts.addAll(parsePorts(getNodes(nodeNoNS, "/knimeNode/ports/outPort"), false));
-		outPorts.addAll(parsePorts(getNodes(nodeNoNS, "/knimeNode/ports/dataOut"), false));
-		builder.setOutPorts(outPorts);
+		builder.setOutPorts(
+				parsePorts(getNodes(nodeNoNS, "/knimeNode/ports/*[name()='outPort' or name()='dataOut']"), false));
 
 		// views
 		List<Node> views = getNodes(nodeNoNS, "/knimeNode/views/view");
