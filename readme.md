@@ -203,6 +203,26 @@ The generated `portDocumentation.json` JSON file’s structure looks as follows:
 ]
 ```
 
+Development
+-----------
+
+Run the following maven commadn to compile the code, run the tests, and, if 
+successful, build an update site:
+
+```
+$ mvn clean verify
+```
+
+To increment the version, update the `MANIFEST.MF` and/or `feature.xml` and
+run the following command to automatically update the project’s `pom.xml`
+files:
+
+```
+$ mvn org.eclipse.tycho:tycho-versions-plugin:update-pom
+```
+
+Make sure to follow [Semantic Versioning][6].
+
 Contributing
 ------------
 
@@ -223,3 +243,4 @@ Copyright (c) 2017, 2018 Philipp Katz
 [3]: https://seleniumnodes.com/docs
 [4]: https://nodepit.com
 [5]: https://en.wikipedia.org/wiki/Base64
+[6]: http://semver.org

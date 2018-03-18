@@ -84,7 +84,6 @@ import org.w3c.dom.Element;
 
 import de.philippkatz.knime.jsondocgen.docs.CategoryDoc;
 import de.philippkatz.knime.jsondocgen.docs.CategoryDoc.CategoryDocBuilder;
-import de.philippkatz.knime.jsondocgen.docs.NodeDoc;
 import de.philippkatz.knime.jsondocgen.docs.NodeDoc.NodeDocBuilder;
 import de.philippkatz.knime.jsondocgen.docs.PortTypeDoc;
 import de.philippkatz.knime.jsondocgen.docs.PortTypeDoc.PortTypeDocBuilder;
@@ -388,14 +387,13 @@ public class JsonNodeDocuGenerator implements IApplication {
 			builder.setInPortObjectClasses(
 					Arrays.stream(inPorts).map(pt -> pt.getPortObjectClass().getName()).collect(Collectors.toList()));
 
-			NodeDoc nodeDoc = builder.build();
 			if (deprecated) {
 				// there are two locations, where nodes can be set to deprecated:
 				// so, do not overwrite with false, if already set to true
 				builder.setDeprecated(true);
 			}
 			if (!deprecated || m_includeDeprecated) {
-				parentCategory.addNode(nodeDoc);
+				parentCategory.addNode(builder.build());
 			}
 
 			return true;
