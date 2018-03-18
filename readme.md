@@ -1,7 +1,7 @@
 KNIME JSON Node Documentation Generator
 =======================================
 
-![Run status](https://api.shippable.com/projects/590caf4e50a8640700690ab1/badge?branch=master)
+[![Run Status](https://api.shippable.com/projects/590caf4e50a8640700690ab1/badge?branch=master)](https://app.shippable.com/github/qqilihq/knime-json-node-doc-generator)
 
 Builds JSON files containing KNIME node, port, and splash icon documentations, based on and similar to
 KNIME’s `org.knime.workbench.repository.NodeDocumentationGenerator`, but with a
