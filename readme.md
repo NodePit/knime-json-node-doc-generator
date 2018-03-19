@@ -209,7 +209,7 @@ The generated `portDocumentation.json` JSON file’s structure looks as follows:
 Development
 -----------
 
-Run the following maven commadn to compile the code, run the tests, and, if 
+Run the following Maven command to compile the code, run the tests, and, if
 successful, build an update site:
 
 ```
