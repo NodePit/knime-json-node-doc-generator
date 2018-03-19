@@ -2,6 +2,7 @@ package de.philippkatz.knime.jsondocgen.docs;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Intermediate object used for constructing the JSON and for testing. Use the
@@ -15,8 +16,6 @@ public final class NodeDoc extends AbstractDoc {
 		private List<Option> options;
 		private List<Port> inPorts;
 		private List<Port> outPorts;
-		private List<String> inPortObjectClasses;
-		private List<String> outPortObjectClasses;
 		private List<View> views;
 		private String type;
 		private boolean deprecated;
@@ -40,14 +39,6 @@ public final class NodeDoc extends AbstractDoc {
 		}
 		public NodeDocBuilder setOutPorts(List<Port> outPorts) {
 			this.outPorts = outPorts;
-			return this;
-		}
-		public NodeDocBuilder setInPortObjectClasses(List<String> inPortObjectClasses) {
-			this.inPortObjectClasses = inPortObjectClasses;
-			return this;
-		}
-		public NodeDocBuilder setOutPortObjectClasses(List<String> outPortObjectClasses) {
-			this.outPortObjectClasses = outPortObjectClasses;
 			return this;
 		}
 		public NodeDocBuilder setViews(List<View> views) {
@@ -111,12 +102,14 @@ public final class NodeDoc extends AbstractDoc {
 	}
 	public static final class Port {
 		public final int index;
+		public final String portObjectClass;
 		public final String name;
 		public final String description;
 		/** null in case of an outputPort. */
 		final Boolean optional;
-		public Port(int index, String name, String description, Boolean optional) {
+		public Port(int index, String portObjectClass, String name, String description, Boolean optional) {
 			this.index = index;
+			this.portObjectClass = portObjectClass;
 			this.name = name;
 			this.description = description;
 			this.optional = optional;
@@ -146,7 +139,9 @@ public final class NodeDoc extends AbstractDoc {
 	public final List<Option> options;
 	public final List<Port> inPorts;
 	public final List<Port> outPorts;
+	/** @deprecated JSON backwards compatibility, get this from {@link #inPorts}. */
 	public final List<String> inPortObjectClasses;
+	/** @deprecated JSON backwards compatibility, get this from {@link #outPorts}. */
 	public final List<String> outPortObjectClasses;
 	public final List<View> views;
 	public final String type;
@@ -161,12 +156,21 @@ public final class NodeDoc extends AbstractDoc {
 		options = copyOrNull(builder.options);
 		inPorts = copyOrNull(builder.inPorts);
 		outPorts = copyOrNull(builder.outPorts);
-		inPortObjectClasses = copyOrNull(builder.inPortObjectClasses);
-		outPortObjectClasses = copyOrNull(builder.outPortObjectClasses);
+		inPortObjectClasses = convert(builder.inPorts);
+		outPortObjectClasses = convert(builder.outPorts);
 		views = copyOrNull(builder.views);
 		type = builder.type;
 		deprecated = builder.deprecated;
 		interactiveView = builder.interactiveView;
 		streamable = builder.streamable;
 	}
+
+	private static List<String> convert(List<Port> ports) {
+		if (ports != null) {
+			return ports.stream().map(p -> p.portObjectClass).collect(Collectors.toList());
+		} else {
+			return null;
+		}
+	}
+
 }

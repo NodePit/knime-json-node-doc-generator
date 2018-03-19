@@ -100,6 +100,7 @@ The generated `nodeDocumentation.json` JSON file’s structure looks as follows:
           "inPorts": [
             {
               "index": 0,
+              "portObjectClass": "org.knime.core.node.BufferedDataTable",
               "name": "WebDriver",
               "description": "Table with a column providing a WebDriver with an open alert, confirm, or prompt box.",
               "optional": false
@@ -108,8 +109,10 @@ The generated `nodeDocumentation.json` JSON file’s structure looks as follows:
           "outPorts": [
             {
               "index": 0,
+              "portObjectClass": "org.knime.core.node.BufferedDataTable",
               "name": "WebDriver",
-              "description": "Same as input table, and appended text column in case the \"Save text\" option was selected."
+              "description": "Same as input table, and appended text column in case the \"Save text\" option was selected.",
+              "optional": false
             }
           ],
           "inPortObjectClasses": [

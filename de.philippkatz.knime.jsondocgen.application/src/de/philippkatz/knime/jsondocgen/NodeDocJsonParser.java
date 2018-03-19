@@ -126,7 +126,7 @@ public final class NodeDocJsonParser {
 			if (isInPort) {
 				optional = Boolean.parseBoolean(getAttribute(port, "optional"));
 			}
-			portsJson.add(new Port(index, name, description, optional));
+			portsJson.add(new Port(index, /* not known at this point. */ null, name, description, optional));
 		}
 		return portsJson;
 	}

@@ -52,7 +52,6 @@ import java.io.FileOutputStream;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -85,6 +84,7 @@ import org.w3c.dom.Element;
 import de.philippkatz.knime.jsondocgen.docs.CategoryDoc;
 import de.philippkatz.knime.jsondocgen.docs.CategoryDoc.CategoryDocBuilder;
 import de.philippkatz.knime.jsondocgen.docs.NodeDoc.NodeDocBuilder;
+import de.philippkatz.knime.jsondocgen.docs.NodeDoc.Port;
 import de.philippkatz.knime.jsondocgen.docs.PortTypeDoc;
 import de.philippkatz.knime.jsondocgen.docs.PortTypeDoc.PortTypeDocBuilder;
 import de.philippkatz.knime.jsondocgen.docs.SplashIconDoc;
@@ -380,12 +380,10 @@ public class JsonNodeDocuGenerator implements IApplication {
 			// the actual implementation might be inconsistent.
 			NodeModel nodeModel = factory.createNodeModel();
 			PortType[] outPorts = getPorts(nodeModel, false);
-			builder.setOutPortObjectClasses(
-					Arrays.stream(outPorts).map(pt -> pt.getPortObjectClass().getName()).collect(Collectors.toList()));
-
+			builder.setOutPorts(mergePortInfo(builder.build().outPorts, outPorts, current.getID()));
+			
 			PortType[] inPorts = getPorts(nodeModel, true);
-			builder.setInPortObjectClasses(
-					Arrays.stream(inPorts).map(pt -> pt.getPortObjectClass().getName()).collect(Collectors.toList()));
+			builder.setInPorts(mergePortInfo(builder.build().inPorts, inPorts, current.getID()));
 
 			if (deprecated) {
 				// there are two locations, where nodes can be set to deprecated:
@@ -432,6 +430,42 @@ public class JsonNodeDocuGenerator implements IApplication {
 			return false;
 		}
 
+	}
+
+	/**
+	 * Merge port information which is defined (a) in the node's documentation, (b)
+	 * via the {@link NodeModel}'s implementation.
+	 * 
+	 * @param ports
+	 *            The port info from the documentation.
+	 * @param portTypes
+	 *            The port type info from the implementation.
+	 * @param nodeId
+	 *            The ID of the currently processed node (for outputting the debug
+	 *            log)
+	 * @return the merged port information.
+	 */
+	private static List<Port> mergePortInfo(List<Port> ports, PortType[] portTypes, String nodeId) {
+		List<Port> result = new ArrayList<>();
+		int numDocPorts = ports.size();
+		int numImplPorts = portTypes.length;
+		if (numDocPorts != numImplPorts) {
+			System.out.println(String.format("[warn] %s: Documentation does not match implementation: %s vs. %s ports",
+					nodeId, numDocPorts, numImplPorts));
+		}
+		for (int index = 0; index < numImplPorts; index++) {
+			PortType portType = portTypes[index];
+			String name = null;
+			String description = null;
+			if (ports.size() > index) {
+				Port portInfo = ports.get(index);
+				name = portInfo.name;
+				description = portInfo.description;
+			}
+			result.add(
+					new Port(index, portType.getPortObjectClass().getName(), name, description, portType.isOptional()));
+		}
+		return result;
 	}
 
 	/**
