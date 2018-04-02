@@ -149,7 +149,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 	private CategoryDocBuilder rootCategoryDoc;
 
-	Map<Class<? extends PortObject>, PortType> portTypesFromNodes;
+	private Map<Class<? extends PortObject>, PortType> portTypesFromNodes;
 
 	@Override
 	public Object start(final IApplicationContext context) throws Exception {
