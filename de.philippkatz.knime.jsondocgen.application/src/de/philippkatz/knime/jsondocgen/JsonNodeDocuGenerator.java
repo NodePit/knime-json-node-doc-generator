@@ -488,11 +488,11 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 		Method getNrPorts = NodeModel.class.getDeclaredMethod(inPort ? "getNrInPorts" : "getNrOutPorts");
 		getNrPorts.setAccessible(true);
-		int nrOutPorts = (int) getNrPorts.invoke(nodeModel);
+		int nrPorts = (int) getNrPorts.invoke(nodeModel);
 
-		PortType[] portTypes = new PortType[nrOutPorts];
+		PortType[] portTypes = new PortType[nrPorts];
 
-		for (int index = 0; index < nrOutPorts; index++) {
+		for (int index = 0; index < nrPorts; index++) {
 			portTypes[index] = (PortType) getPortType.invoke(nodeModel, index);
 		}
 
