@@ -245,14 +245,17 @@ public class JsonNodeDocuGenerator implements IApplication {
 			Map<Class<? extends PortObject>, PortType> portTypes = new HashMap<>();
 
 			// ALL port types as defined in the NodeModels' APIs
+	System.out.println("# port types from nodes: " + portTypesFromNodes.size());
 			portTypes.putAll(portTypesFromNodes);
 
 			// all registered port types indexed by the PortObject class; read this only
 			// once from the registry and cache it, b/c the registry creates new PortTypes
 			// dynamically when requesting an unknown type
+	System.out.println("# port types from extension point: " + PortTypeRegistry.getInstance().availablePortTypes().size());
 			portTypes.putAll(PortTypeRegistry.getInstance().availablePortTypes().stream()
 					.collect(Collectors.toMap(PortType::getPortObjectClass, Function.identity())));
 
+	System.out.println("# port types total: " + portTypes.size());
 			processPorts(portTypes.keySet(), portTypes, builders);
 
 			// get the root element (all PortObjects inherit from this interface).
@@ -394,13 +397,11 @@ public class JsonNodeDocuGenerator implements IApplication {
 			NodeModel nodeModel = factory.createNodeModel();
 			PortType[] outPorts = getPorts(nodeModel, false);
 			builder.setOutPorts(mergePortInfo(builder.build().outPorts, outPorts, current.getID()));
-			portTypesFromNodes.putAll(Arrays.stream(outPorts)
-					.collect(Collectors.toMap(PortType::getPortObjectClass, Function.identity())));
+			portTypesFromNodes.putAll(portsToMap(outPorts));
 			
 			PortType[] inPorts = getPorts(nodeModel, true);
 			builder.setInPorts(mergePortInfo(builder.build().inPorts, inPorts, current.getID()));
-			portTypesFromNodes.putAll(Arrays.stream(inPorts)
-					.collect(Collectors.toMap(PortType::getPortObjectClass, Function.identity())));
+			portTypesFromNodes.putAll(portsToMap(inPorts));
 
 			if (deprecated) {
 				// there are two locations, where nodes can be set to deprecated:
@@ -447,6 +448,19 @@ public class JsonNodeDocuGenerator implements IApplication {
 			return false;
 		}
 
+	}
+
+	/**
+	 * Create a {@link Map} of {@link PortType}s with {@link PortObject} as key.
+	 * Drop duplicates.
+	 * 
+	 * @param ports
+	 *            Array of ports.
+	 * @return Indexed ports.
+	 */
+	private static Map<Class<? extends PortObject>, PortType> portsToMap(PortType[] ports) {
+		return Arrays.stream(ports)
+				.collect(Collectors.toMap(PortType::getPortObjectClass, Function.identity(), (p1, p2) -> p1));
 	}
 
 	/**
