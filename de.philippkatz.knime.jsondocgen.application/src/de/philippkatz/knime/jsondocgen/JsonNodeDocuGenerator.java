@@ -394,14 +394,18 @@ public class JsonNodeDocuGenerator implements IApplication {
 			// port type information -- extract this information separately and do not merge
 			// with the node description's port information, because the documentation and
 			// the actual implementation might be inconsistent.
-			NodeModel nodeModel = factory.createNodeModel();
-			PortType[] outPorts = getPorts(nodeModel, false);
-			builder.setOutPorts(mergePortInfo(builder.build().outPorts, outPorts, current.getID()));
-			portTypesFromNodes.putAll(portsToMap(outPorts));
-			
-			PortType[] inPorts = getPorts(nodeModel, true);
-			builder.setInPorts(mergePortInfo(builder.build().inPorts, inPorts, current.getID()));
-			portTypesFromNodes.putAll(portsToMap(inPorts));
+			try {
+				NodeModel nodeModel = factory.createNodeModel();
+				PortType[] outPorts = getPorts(nodeModel, false);
+				builder.setOutPorts(mergePortInfo(builder.build().outPorts, outPorts, current.getID()));
+				portTypesFromNodes.putAll(portsToMap(outPorts));
+
+				PortType[] inPorts = getPorts(nodeModel, true);
+				builder.setInPorts(mergePortInfo(builder.build().inPorts, inPorts, current.getID()));
+				portTypesFromNodes.putAll(portsToMap(inPorts));
+			} catch (Throwable t) {
+				System.out.println(String.format("[warn] Could not create NodeModel for %s: %s", factory, t));
+			}
 
 			if (deprecated) {
 				// there are two locations, where nodes can be set to deprecated:
