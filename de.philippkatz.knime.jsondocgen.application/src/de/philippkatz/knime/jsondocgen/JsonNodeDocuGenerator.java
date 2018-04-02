@@ -52,6 +52,7 @@ import java.io.FileOutputStream;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -148,6 +149,8 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 	private CategoryDocBuilder rootCategoryDoc;
 
+	Map<Class<? extends PortObject>, PortType> portTypesFromNodes;
+
 	@Override
 	public Object start(final IApplicationContext context) throws Exception {
 		Object o = context.getArguments().get(IApplicationContext.APPLICATION_ARGS);
@@ -218,6 +221,11 @@ public class JsonNodeDocuGenerator implements IApplication {
 			}
 			m_catPath = m_catPath.replaceAll("/", ".");
 
+			// get all port types from the nodes, as not all of them are registered via
+			// extension point, see here:
+			// https://github.com/qqilihq/knime-json-node-doc-generator/issues/10
+			portTypesFromNodes = new HashMap<>();
+
 			// recursively generate the node reference and the node description
 			// pages
 			generate(m_directory, root, null, rootCategoryDoc);
@@ -233,12 +241,17 @@ public class JsonNodeDocuGenerator implements IApplication {
 		if (!m_skipPortDocumentation) {
 
 			Map<Class<? extends PortObject>, PortTypeDocBuilder> builders = new HashMap<>();
+			
+			Map<Class<? extends PortObject>, PortType> portTypes = new HashMap<>();
+
+			// ALL port types as defined in the NodeModels' APIs
+			portTypes.putAll(portTypesFromNodes);
 
 			// all registered port types indexed by the PortObject class; read this only
 			// once from the registry and cache it, b/c the registry creates new PortTypes
 			// dynamically when requesting an unknown type
-			Map<Class<? extends PortObject>, PortType> portTypes = PortTypeRegistry.getInstance().availablePortTypes()
-					.stream().collect(Collectors.toMap(PortType::getPortObjectClass, Function.identity()));
+			portTypes.putAll(PortTypeRegistry.getInstance().availablePortTypes().stream()
+					.collect(Collectors.toMap(PortType::getPortObjectClass, Function.identity())));
 
 			processPorts(portTypes.keySet(), portTypes, builders);
 
@@ -381,9 +394,13 @@ public class JsonNodeDocuGenerator implements IApplication {
 			NodeModel nodeModel = factory.createNodeModel();
 			PortType[] outPorts = getPorts(nodeModel, false);
 			builder.setOutPorts(mergePortInfo(builder.build().outPorts, outPorts, current.getID()));
+			portTypesFromNodes.putAll(Arrays.stream(outPorts)
+					.collect(Collectors.toMap(PortType::getPortObjectClass, Function.identity())));
 			
 			PortType[] inPorts = getPorts(nodeModel, true);
 			builder.setInPorts(mergePortInfo(builder.build().inPorts, inPorts, current.getID()));
+			portTypesFromNodes.putAll(Arrays.stream(inPorts)
+					.collect(Collectors.toMap(PortType::getPortObjectClass, Function.identity())));
 
 			if (deprecated) {
 				// there are two locations, where nodes can be set to deprecated:
