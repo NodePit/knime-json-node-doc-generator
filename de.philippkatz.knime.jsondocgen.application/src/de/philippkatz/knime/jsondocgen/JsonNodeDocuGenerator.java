@@ -370,7 +370,9 @@ public class JsonNodeDocuGenerator implements IApplication {
 			NodeDocBuilder builder = NodeDocJsonParser.parse(xmlDescription, new NodeDocBuilder());
 			builder.setId(current.getID());
 			builder.setContributingPlugin(current.getContributingPlugin());
-			builder.setIconBase64(Utils.getImageBase64(nodeTemplate.getIcon()));
+			if (nodeTemplate.getIcon() != null) {
+				builder.setIconBase64(Utils.getImageBase64(nodeTemplate.getIcon()));
+			}
 			builder.setStreamable(isStreamable(nodeTemplate));
 			builder.setAfterId(Utils.stringOrNull(nodeTemplate.getAfterID()));
 			boolean deprecated = RepositoryManager.INSTANCE.isDeprecated(current.getID());
@@ -408,7 +410,9 @@ public class JsonNodeDocuGenerator implements IApplication {
 				builder.setName(category.getName());
 				builder.setDescription(category.getDescription());
 				builder.setContributingPlugin(category.getContributingPlugin());
-				builder.setIconBase64(Utils.getImageBase64(category.getIcon()));
+				if (category.getIcon() != null) {
+					builder.setIconBase64(Utils.getImageBase64(category.getIcon()));
+				}
 				builder.setAfterId(Utils.stringOrNull(category.getAfterID()));
 				newCategory = builder;
 			}
