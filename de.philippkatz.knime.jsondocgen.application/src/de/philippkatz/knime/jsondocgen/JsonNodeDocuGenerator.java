@@ -362,13 +362,19 @@ public class JsonNodeDocuGenerator implements IApplication {
 				}
 			}
 
-			// create the JSON entry from the node XML description
 			NodeTemplate nodeTemplate = (NodeTemplate) current;
 			NodeFactory<? extends NodeModel> factory = nodeTemplate.createFactoryInstance();
 
-			Element xmlDescription = factory.getXMLDescription();
-			NodeDocBuilder builder = NodeDocJsonParser.parse(xmlDescription, new NodeDocBuilder());
+			NodeDocBuilder builder = new NodeDocBuilder();
 			builder.setId(current.getID());
+			builder.setName(current.getName());
+			
+			// get additional information from the node XML description
+			Element xmlDescription = factory.getXMLDescription();
+			if (xmlDescription != null) {
+				NodeDocJsonParser.parse(xmlDescription, builder);
+			}
+			
 			builder.setContributingPlugin(current.getContributingPlugin());
 			if (nodeTemplate.getIcon() != null) {
 				builder.setIconBase64(Utils.getImageBase64(nodeTemplate.getIcon()));
