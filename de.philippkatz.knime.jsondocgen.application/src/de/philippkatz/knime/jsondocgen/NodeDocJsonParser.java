@@ -54,6 +54,11 @@ public final class NodeDocJsonParser {
 		if (tabs.size() > 0) {
 			for (Node tab : tabs) {
 				String name = getAttribute(tab, "name");
+				String description = null;
+				Node descriptionNode = getNode(tab, "description");
+				if (descriptionNode != null) {
+					description = trim(getInnerXml(descriptionNode));
+				}
 				// first, try whether there's a sub-element 'options'; see:
 				// https://www.knime.org/node/dynamicNode_v3.0.xsd
 				// https://www.knime.org/node/dynamicJSNode_v3.0.xsd
@@ -62,7 +67,7 @@ public final class NodeDocJsonParser {
 				if (options.size() == 0) {
 					options = getNodes(tab, "option");
 				}
-				builder.addOptionTab(new OptionTab(name, parseOptions(options)));
+				builder.addOptionTab(new OptionTab(name, description, parseOptions(options)));
 			}
 		} else {
 			builder.setOptions(parseOptions(getNodes(nodeNoNS, "/knimeNode/fullDescription/option")));

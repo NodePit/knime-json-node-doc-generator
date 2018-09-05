@@ -82,10 +82,15 @@ public final class NodeDoc extends AbstractDoc {
 	
 	public static final class OptionTab {
 		public final String name;
+		public final String description; 
 		public final List<Option> options;
-		public OptionTab(String name, List<Option> options) {
+		public OptionTab(String name, String description, List<Option> options) {
 			this.name = name;
+			this.description = description;
 			this.options = copyOrNull(options);
+		}
+		public OptionTab(String name, List<Option> options) {
+			this(name, null, options);
 		}
 	}
 	public static final class Option {

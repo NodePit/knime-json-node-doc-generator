@@ -121,6 +121,17 @@ public class NodeDocJsonParserTest {
 		assertNull(nodeDoc.interactiveView);
 	}
 
+	@Test
+	public void parsing_XML_with_description_in_tabs() throws Exception {
+		Document doc = readDoc("/JavaSnippetNodeFactory.xml");
+		NodeDoc nodeDoc = NodeDocJsonParser.parse(doc);
+
+		assertEquals(3, nodeDoc.optionTabs.size());
+		assertEquals("Java Snippet", nodeDoc.optionTabs.get(0).name);
+		assertEquals("Contains the Java code editor to edit the snippet.", nodeDoc.optionTabs.get(0).description);
+		assertEquals(5, nodeDoc.optionTabs.get(0).options.size());
+	}
+
 	private static Document readDoc(String resourcePath) throws Exception {
 		Objects.requireNonNull(resourcePath, "resourcePath must not be null");
 		try (InputStream resourceStream = NodeDocJsonParserTest.class.getResourceAsStream(resourcePath)) {
