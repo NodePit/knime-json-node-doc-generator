@@ -117,6 +117,9 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 	private static final String SKIP_SPLASH_ICONS = "-skipSplashIcons";
 
+	/** Return code in case an error occurs during execution. */
+	private static final Integer EXIT_EXECUTION_ERROR = Integer.valueOf(1);
+
 	private static void printUsage() {
 		System.err.println("Usage: NodeDocuGenerator options");
 		System.err.println("Allowed options are:");
@@ -182,17 +185,23 @@ public class JsonNodeDocuGenerator implements IApplication {
 		if (m_directory == null) {
 			System.err.println("No output directory specified");
 			printUsage();
-			return 1;
+			return EXIT_EXECUTION_ERROR;
 		} else if (!m_directory.exists() && !m_directory.mkdirs()) {
 			System.err.println("Could not create output directory '" + m_directory.getAbsolutePath() + "'.");
-			return 1;
+			return EXIT_EXECUTION_ERROR;
 		}
 
 		try {
 			generate();
-		} catch (Exception e) {
-			LOGGER.error("Encountered error", e);
-			throw e;
+		} catch (Throwable t) {
+			// important: catch all throwables here and do not throw them out of this
+			// method; this is due to the fact, that execution errors are being shown in a
+			// GUI dialog, and when running headless (with Xvfb), we cannot access this
+			// dialog, the application will just remain running, and we will never know why
+			// we're hanging. Happy debugging! (nb: catching Throwable on purpose, Exception
+			// is not sufficient; we had a java.lang.NoClassDefFoundError)
+			LOGGER.error("Encountered error", t);
+			return EXIT_EXECUTION_ERROR;
 		}
 
 		return EXIT_OK;
