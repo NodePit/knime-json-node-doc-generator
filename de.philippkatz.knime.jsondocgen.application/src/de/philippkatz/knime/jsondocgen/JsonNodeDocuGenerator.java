@@ -64,6 +64,7 @@ import java.util.stream.Collectors;
 import javax.xml.transform.TransformerException;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.log4j.Logger;
 import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
 import org.eclipse.swt.widgets.Display;
@@ -99,6 +100,8 @@ import de.philippkatz.knime.jsondocgen.docs.SplashIconDoc;
  * @author Philipp Katz, seleniumnodes.com
  */
 public class JsonNodeDocuGenerator implements IApplication {
+
+	private static final Logger LOGGER = Logger.getLogger(JsonNodeDocuGenerator.class);
 
 	private static final String DESTINATION_ARG = "-destination";
 
@@ -185,7 +188,12 @@ public class JsonNodeDocuGenerator implements IApplication {
 			return 1;
 		}
 
-		generate();
+		try {
+			generate();
+		} catch (Exception e) {
+			LOGGER.error("Encountered error", e);
+			throw e;
+		}
 
 		return EXIT_OK;
 	}
@@ -232,6 +240,8 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 		if (!m_skipPortDocumentation) {
 
+			LOGGER.debug("Generating port documentation");
+
 			Map<Class<? extends PortObject>, PortTypeDocBuilder> builders = new HashMap<>();
 
 			// all registered port types indexed by the PortObject class; read this only
@@ -239,6 +249,8 @@ public class JsonNodeDocuGenerator implements IApplication {
 			// dynamically when requesting an unknown type
 			Map<Class<? extends PortObject>, PortType> portTypes = PortTypeRegistry.getInstance().availablePortTypes()
 					.stream().collect(Collectors.toMap(PortType::getPortObjectClass, Function.identity()));
+
+			LOGGER.debug(String.format("Found %s ports to process", portTypes.size()));
 
 			processPorts(portTypes.keySet(), portTypes, builders);
 
@@ -252,7 +264,12 @@ public class JsonNodeDocuGenerator implements IApplication {
 		}
 
 		if (!m_skipSplashIcons) {
+
+			LOGGER.debug("Generating splash icons");
+
 			List<SplashIconDoc> splashIcons = SplashIconReader.readSplashIcons();
+			LOGGER.debug(String.format("Found %s splash icons", splashIcons.size()));
+
 			File splashIconsResultFile = new File(m_directory, "splashIcons.json");
 			System.out.println("Writing splash icons to " + splashIconsResultFile);
 			IOUtils.write(Utils.toJson(splashIcons), new FileOutputStream(splashIconsResultFile),
@@ -276,6 +293,8 @@ public class JsonNodeDocuGenerator implements IApplication {
 			Map<Class<? extends PortObject>, PortTypeDocBuilder> builders) {
 
 		portObjectClasses.forEach(portObjectClass -> {
+
+			LOGGER.debug(String.format("Processing %s", portObjectClass.getName()));
 
 			PortTypeDoc.PortTypeDocBuilder builder = builders.get(portObjectClass);
 
