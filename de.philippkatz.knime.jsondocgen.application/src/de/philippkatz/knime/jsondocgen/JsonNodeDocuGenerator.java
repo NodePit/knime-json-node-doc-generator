@@ -407,7 +407,6 @@ public class JsonNodeDocuGenerator implements IApplication {
 			if (nodeTemplate.getIcon() != null) {
 				builder.setIconBase64(Utils.getImageBase64(nodeTemplate.getIcon()));
 			}
-			builder.setStreamable(isStreamable(nodeTemplate));
 			builder.setAfterId(Utils.stringOrNull(nodeTemplate.getAfterID()));
 			boolean deprecated = RepositoryManager.INSTANCE.isDeprecated(current.getID());
 			// port type information -- extract this information separately and do not merge
@@ -419,6 +418,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 				builder.setOutPorts(mergePortInfo(builder.build().outPorts, outPorts, current.getID()));
 				PortType[] inPorts = getPorts(nodeModel, true);
 				builder.setInPorts(mergePortInfo(builder.build().inPorts, inPorts, current.getID()));
+				builder.setStreamable(isStreamable(nodeModel));
 			} catch (Throwable t) {
 				System.out.println(String.format("[warn] Could not create NodeModel for %s: %s", factory, t));
 			}
@@ -544,20 +544,19 @@ public class JsonNodeDocuGenerator implements IApplication {
 	 * org.knime.workbench.repository.view.AbstractRepositoryView.enrichWithAdditionalInfo(IRepositoryObject,
 	 * IProgressMonitor, boolean)
 	 */
-	private static boolean isStreamable(NodeTemplate nodeTemplate) {
+	private static boolean isStreamable(NodeModel nodeModel) {
 		try {
-			NodeFactory<? extends NodeModel> nf = nodeTemplate.createFactoryInstance();
-			NodeModel nm = nf.createNodeModel();
 			// check whether the current node model overrides the
 			// #createStreamableOperator-method
-			Method m = nm.getClass().getMethod("createStreamableOperator", PartitionInfo.class, PortObjectSpec[].class);
+			Method m = nodeModel.getClass().getMethod("createStreamableOperator", PartitionInfo.class,
+					PortObjectSpec[].class);
 			if (m.getDeclaringClass() != NodeModel.class) {
 				// method has been overriden -> node is probably streamable or distributable
 				return true;
 			}
-		} catch (Throwable t) {
-			System.out.println(
-					"Unable to instantiate the node " + nodeTemplate.getFactory().getName() + ": " + t.getMessage());
+		} catch (NoSuchMethodException e) {
+			// this should never happen, as the method is implemented by the NodeModel class
+			LOGGER.error(String.format("No createStreamableOperator method in %s", nodeModel.getClass().getName()), e);
 		}
 		return false;
 	}
