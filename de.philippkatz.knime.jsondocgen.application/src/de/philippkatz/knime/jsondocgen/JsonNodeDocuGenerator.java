@@ -221,7 +221,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 		if (!m_skipNodeDocumentation) {
 
-			System.out.println("Reading node repository");
+			LOGGER.info("Reading node repository");
 
 			IRepositoryObject root = RepositoryManager.INSTANCE.getRoot();
 			rootCategoryDoc = new CategoryDocBuilder();
@@ -242,14 +242,14 @@ public class JsonNodeDocuGenerator implements IApplication {
 			CategoryDoc rootCategory = rootCategoryDoc.build();
 			String resultJson = rootCategory.toJson();
 			File resultFile = new File(m_directory, "nodeDocumentation.json");
-			System.out.println("Writing nodes to " + resultFile);
+			LOGGER.info("Writing nodes to " + resultFile);
 			IOUtils.write(resultJson, new FileOutputStream(resultFile), StandardCharsets.UTF_8);
 
 		}
 
 		if (!m_skipPortDocumentation) {
 
-			LOGGER.debug("Generating port documentation");
+			LOGGER.info("Generating port documentation");
 
 			Map<Class<? extends PortObject>, PortTypeDocBuilder> builders = new HashMap<>();
 
@@ -267,7 +267,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 			PortTypeDoc rootElement = builders.get(PortObject.class).build();
 
 			File portTypeResultFile = new File(m_directory, "portDocumentation.json");
-			System.out.println("Writing port types to " + portTypeResultFile);
+			LOGGER.info("Writing port types to " + portTypeResultFile);
 			IOUtils.write(Utils.toJson(rootElement), new FileOutputStream(portTypeResultFile), StandardCharsets.UTF_8);
 
 		}
@@ -280,7 +280,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 			LOGGER.debug(String.format("Found %s splash icons", splashIcons.size()));
 
 			File splashIconsResultFile = new File(m_directory, "splashIcons.json");
-			System.out.println("Writing splash icons to " + splashIconsResultFile);
+			LOGGER.info("Writing splash icons to " + splashIconsResultFile);
 			IOUtils.write(Utils.toJson(splashIcons), new FileOutputStream(splashIconsResultFile),
 					StandardCharsets.UTF_8);
 		}
@@ -420,7 +420,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 				builder.setInPorts(mergePortInfo(builder.build().inPorts, inPorts, current.getID()));
 				builder.setStreamable(isStreamable(nodeModel));
 			} catch (Throwable t) {
-				System.out.println(String.format("[warn] Could not create NodeModel for %s: %s", factory, t));
+				LOGGER.warn(String.format("Could not create NodeModel for %s", factory.getClass().getName()), t);
 			}
 
 			if (deprecated) {
@@ -434,7 +434,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 			return true;
 		} else if (current instanceof Category || current instanceof Root) {
-			System.out.println("Processing category " + getPath(current));
+			LOGGER.info("Processing category " + getPath(current));
 			IRepositoryObject[] repoObjs = ((IContainerObject) current).getChildren();
 
 			CategoryDocBuilder newCategory = parentCategory;
@@ -490,8 +490,8 @@ public class JsonNodeDocuGenerator implements IApplication {
 		int numDocPorts = ports.size();
 		int numImplPorts = portTypes.length;
 		if (numDocPorts != numImplPorts) {
-			System.out.println(String.format("[warn] %s: Documentation does not match implementation: %s vs. %s ports",
-					nodeId, numDocPorts, numImplPorts));
+			LOGGER.warn(String.format("%s: Documentation does not match implementation: %s vs. %s ports", nodeId,
+					numDocPorts, numImplPorts));
 		}
 		for (int index = 0; index < numImplPorts; index++) {
 			PortType portType = portTypes[index];
