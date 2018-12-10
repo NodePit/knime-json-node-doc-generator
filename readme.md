@@ -53,8 +53,13 @@ This example creates three JSON file in you home directory
 * `splashIcons.json`: list of all registered splash screen icons
 
 ```
-$ ./Knime -nosplash -application de.philippkatz.knime.jsondocgen.application.JsonNodeDocumentationGenerator -destination ~ -category /selenium
+$ ./Knime -nosplash --launcher.suppressErrors -application de.philippkatz.knime.jsondocgen.application.JsonNodeDocumentationGenerator -destination ~ -category /selenium
 ```
+
+When running within a headless environment (CI, Docker, …) with Xvfb, it’s
+highly advisable to add the option `--launcher.suppressErrors`. Otherwise,
+execution errors will lead to a seemingly hanging application, as the shown
+error dialog remains “invisible”.
 
 The generated `nodeDocumentation.json` JSON file’s structure looks as follows:
 
