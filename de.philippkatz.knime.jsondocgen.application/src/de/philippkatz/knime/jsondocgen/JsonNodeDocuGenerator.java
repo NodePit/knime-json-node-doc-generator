@@ -64,6 +64,7 @@ import java.util.stream.Collectors;
 import javax.xml.transform.TransformerException;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.log4j.Logger;
 import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
 import org.eclipse.swt.widgets.Display;
@@ -100,6 +101,8 @@ import de.philippkatz.knime.jsondocgen.docs.SplashIconDoc;
  */
 public class JsonNodeDocuGenerator implements IApplication {
 
+	private static final Logger LOGGER = Logger.getLogger(JsonNodeDocuGenerator.class);
+
 	private static final String DESTINATION_ARG = "-destination";
 
 	private static final String CATEGORY_ARG = "-category";
@@ -113,6 +116,9 @@ public class JsonNodeDocuGenerator implements IApplication {
 	private static final String SKIP_PORT_DOCUMENTATION = "-skipPortDocumentation";
 
 	private static final String SKIP_SPLASH_ICONS = "-skipSplashIcons";
+
+	/** Return code in case an error occurs during execution. */
+	private static final Integer EXIT_EXECUTION_ERROR = Integer.valueOf(1);
 
 	private static void printUsage() {
 		System.err.println("Usage: NodeDocuGenerator options");
@@ -179,13 +185,24 @@ public class JsonNodeDocuGenerator implements IApplication {
 		if (m_directory == null) {
 			System.err.println("No output directory specified");
 			printUsage();
-			return 1;
+			return EXIT_EXECUTION_ERROR;
 		} else if (!m_directory.exists() && !m_directory.mkdirs()) {
 			System.err.println("Could not create output directory '" + m_directory.getAbsolutePath() + "'.");
-			return 1;
+			return EXIT_EXECUTION_ERROR;
 		}
 
-		generate();
+		try {
+			generate();
+		} catch (Throwable t) {
+			// important: catch all throwables here and do not throw them out of this
+			// method; this is due to the fact, that execution errors are being shown in a
+			// GUI dialog, and when running headless (with Xvfb), we cannot access this
+			// dialog, the application will just remain running, and we will never know why
+			// we're hanging. Happy debugging! (nb: catching Throwable on purpose, Exception
+			// is not sufficient; we had a java.lang.NoClassDefFoundError)
+			LOGGER.error("Encountered error", t);
+			return EXIT_EXECUTION_ERROR;
+		}
 
 		return EXIT_OK;
 	}
@@ -204,7 +221,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 		if (!m_skipNodeDocumentation) {
 
-			System.out.println("Reading node repository");
+			LOGGER.info("Reading node repository");
 
 			IRepositoryObject root = RepositoryManager.INSTANCE.getRoot();
 			rootCategoryDoc = new CategoryDocBuilder();
@@ -225,12 +242,14 @@ public class JsonNodeDocuGenerator implements IApplication {
 			CategoryDoc rootCategory = rootCategoryDoc.build();
 			String resultJson = rootCategory.toJson();
 			File resultFile = new File(m_directory, "nodeDocumentation.json");
-			System.out.println("Writing nodes to " + resultFile);
+			LOGGER.info("Writing nodes to " + resultFile);
 			IOUtils.write(resultJson, new FileOutputStream(resultFile), StandardCharsets.UTF_8);
 
 		}
 
 		if (!m_skipPortDocumentation) {
+
+			LOGGER.info("Generating port documentation");
 
 			Map<Class<? extends PortObject>, PortTypeDocBuilder> builders = new HashMap<>();
 
@@ -240,21 +259,28 @@ public class JsonNodeDocuGenerator implements IApplication {
 			Map<Class<? extends PortObject>, PortType> portTypes = PortTypeRegistry.getInstance().availablePortTypes()
 					.stream().collect(Collectors.toMap(PortType::getPortObjectClass, Function.identity()));
 
+			LOGGER.debug(String.format("Found %s ports to process", portTypes.size()));
+
 			processPorts(portTypes.keySet(), portTypes, builders);
 
 			// get the root element (all PortObjects inherit from this interface).
 			PortTypeDoc rootElement = builders.get(PortObject.class).build();
 
 			File portTypeResultFile = new File(m_directory, "portDocumentation.json");
-			System.out.println("Writing port types to " + portTypeResultFile);
+			LOGGER.info("Writing port types to " + portTypeResultFile);
 			IOUtils.write(Utils.toJson(rootElement), new FileOutputStream(portTypeResultFile), StandardCharsets.UTF_8);
 
 		}
 
 		if (!m_skipSplashIcons) {
+
+			LOGGER.debug("Generating splash icons");
+
 			List<SplashIconDoc> splashIcons = SplashIconReader.readSplashIcons();
+			LOGGER.debug(String.format("Found %s splash icons", splashIcons.size()));
+
 			File splashIconsResultFile = new File(m_directory, "splashIcons.json");
-			System.out.println("Writing splash icons to " + splashIconsResultFile);
+			LOGGER.info("Writing splash icons to " + splashIconsResultFile);
 			IOUtils.write(Utils.toJson(splashIcons), new FileOutputStream(splashIconsResultFile),
 					StandardCharsets.UTF_8);
 		}
@@ -276,6 +302,8 @@ public class JsonNodeDocuGenerator implements IApplication {
 			Map<Class<? extends PortObject>, PortTypeDocBuilder> builders) {
 
 		portObjectClasses.forEach(portObjectClass -> {
+
+			LOGGER.debug(String.format("Processing %s", portObjectClass.getName()));
 
 			PortTypeDoc.PortTypeDocBuilder builder = builders.get(portObjectClass);
 
@@ -379,7 +407,6 @@ public class JsonNodeDocuGenerator implements IApplication {
 			if (nodeTemplate.getIcon() != null) {
 				builder.setIconBase64(Utils.getImageBase64(nodeTemplate.getIcon()));
 			}
-			builder.setStreamable(isStreamable(nodeTemplate));
 			builder.setAfterId(Utils.stringOrNull(nodeTemplate.getAfterID()));
 			boolean deprecated = RepositoryManager.INSTANCE.isDeprecated(current.getID());
 			// port type information -- extract this information separately and do not merge
@@ -391,8 +418,9 @@ public class JsonNodeDocuGenerator implements IApplication {
 				builder.setOutPorts(mergePortInfo(builder.build().outPorts, outPorts, current.getID()));
 				PortType[] inPorts = getPorts(nodeModel, true);
 				builder.setInPorts(mergePortInfo(builder.build().inPorts, inPorts, current.getID()));
+				builder.setStreamable(isStreamable(nodeModel));
 			} catch (Throwable t) {
-				System.out.println(String.format("[warn] Could not create NodeModel for %s: %s", factory, t));
+				LOGGER.warn(String.format("Could not create NodeModel for %s", factory.getClass().getName()), t);
 			}
 
 			if (deprecated) {
@@ -406,7 +434,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 			return true;
 		} else if (current instanceof Category || current instanceof Root) {
-			System.out.println("Processing category " + getPath(current));
+			LOGGER.info("Processing category " + getPath(current));
 			IRepositoryObject[] repoObjs = ((IContainerObject) current).getChildren();
 
 			CategoryDocBuilder newCategory = parentCategory;
@@ -462,8 +490,8 @@ public class JsonNodeDocuGenerator implements IApplication {
 		int numDocPorts = ports.size();
 		int numImplPorts = portTypes.length;
 		if (numDocPorts != numImplPorts) {
-			System.out.println(String.format("[warn] %s: Documentation does not match implementation: %s vs. %s ports",
-					nodeId, numDocPorts, numImplPorts));
+			LOGGER.warn(String.format("%s: Documentation does not match implementation: %s vs. %s ports", nodeId,
+					numDocPorts, numImplPorts));
 		}
 		for (int index = 0; index < numImplPorts; index++) {
 			PortType portType = portTypes[index];
@@ -516,20 +544,19 @@ public class JsonNodeDocuGenerator implements IApplication {
 	 * org.knime.workbench.repository.view.AbstractRepositoryView.enrichWithAdditionalInfo(IRepositoryObject,
 	 * IProgressMonitor, boolean)
 	 */
-	private static boolean isStreamable(NodeTemplate nodeTemplate) {
+	private static boolean isStreamable(NodeModel nodeModel) {
 		try {
-			NodeFactory<? extends NodeModel> nf = nodeTemplate.createFactoryInstance();
-			NodeModel nm = nf.createNodeModel();
 			// check whether the current node model overrides the
 			// #createStreamableOperator-method
-			Method m = nm.getClass().getMethod("createStreamableOperator", PartitionInfo.class, PortObjectSpec[].class);
+			Method m = nodeModel.getClass().getMethod("createStreamableOperator", PartitionInfo.class,
+					PortObjectSpec[].class);
 			if (m.getDeclaringClass() != NodeModel.class) {
 				// method has been overriden -> node is probably streamable or distributable
 				return true;
 			}
-		} catch (Throwable t) {
-			System.out.println(
-					"Unable to instantiate the node " + nodeTemplate.getFactory().getName() + ": " + t.getMessage());
+		} catch (NoSuchMethodException e) {
+			// this should never happen, as the method is implemented by the NodeModel class
+			LOGGER.error(String.format("No createStreamableOperator method in %s", nodeModel.getClass().getName()), e);
 		}
 		return false;
 	}
