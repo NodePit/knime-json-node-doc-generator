@@ -318,7 +318,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 					builder = PortTypeDoc.builderForObjectClass(parent.getPortObjectClass().getName());
 					builder.setName(parent.getName());
 					builder.setSpecClass(parent.getPortObjectSpecClass().getName());
-					builder.setColor(Integer.toHexString(parent.getColor()));
+					builder.setColor(makeHexColor(parent.getColor()));
 					builder.setHidden(parent.isHidden());
 					builder.setRegistered(true);
 				} else {
@@ -336,6 +336,13 @@ public class JsonNodeDocuGenerator implements IApplication {
 				builders.get(parent).addChild(builder);
 			}
 		});
+	}
+
+	/* package */ static String makeHexColor(int color) {
+		// ensure that hex color is padded with zeros
+		// (TODO probably ensure that the hex string is no longer than six characters)
+		String hex = Integer.toHexString(color);
+		return "000000".concat(hex).substring(hex.length());
 	}
 
 	@SuppressWarnings("unchecked")

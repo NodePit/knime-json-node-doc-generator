@@ -89,4 +89,12 @@ public class JsonNodeDocuGeneratorTest {
 		assertEquals(PortObject.class, parentPortObjectClasses.get(0));
 	}
 
+	@Test
+	public void testMakeHexColor() {
+		assertEquals("008000", JsonNodeDocuGenerator.makeHexColor(32768));
+		assertEquals("000000", JsonNodeDocuGenerator.makeHexColor(0));
+		assertEquals("9b9b9b", JsonNodeDocuGenerator.makeHexColor(-6579301));
+		assertEquals("800000", JsonNodeDocuGenerator.makeHexColor(8388608));
+	}
+
 }
