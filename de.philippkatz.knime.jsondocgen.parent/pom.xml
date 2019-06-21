@@ -14,8 +14,8 @@
 
   <repositories>
     <repository>
-      <id>knime-3.7</id>
-      <url>http://update.knime.org/analytics-platform/3.7/</url>
+      <id>knime-4.0</id>
+      <url>http://update.knime.org/analytics-platform/4.0/</url>
       <layout>p2</layout>
     </repository>
   </repositories>
