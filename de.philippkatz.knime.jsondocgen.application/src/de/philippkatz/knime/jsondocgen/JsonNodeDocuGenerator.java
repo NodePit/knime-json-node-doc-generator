@@ -68,8 +68,11 @@ import org.apache.log4j.Logger;
 import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
 import org.eclipse.swt.widgets.Display;
+import org.knime.core.node.ConfigurableNodeFactory;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeModel;
+import org.knime.core.node.context.ModifiableNodeCreationConfiguration;
+import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
@@ -420,7 +423,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 			// with the node description's port information, because the documentation and
 			// the actual implementation might be inconsistent.
 			try {
-				NodeModel nodeModel = factory.createNodeModel();
+				NodeModel nodeModel = createNodeModel(factory);
 				PortType[] outPorts = getPorts(nodeModel, false);
 				builder.setOutPorts(mergePortInfo(builder.build().outPorts, outPorts, current.getID()));
 				PortType[] inPorts = getPorts(nodeModel, true);
@@ -477,6 +480,27 @@ public class JsonNodeDocuGenerator implements IApplication {
 			return false;
 		}
 
+	}
+
+	/**
+	 * Create the {@link NodeModel} for the given {@link NodeFactory}. Apply
+	 * workaround for {@link ConfigurableNodeFactory}; see here:
+	 * https://github.com/qqilihq/knime-json-node-doc-generator/issues/17
+	 * 
+	 * @param factory
+	 * @return
+	 * @throws Exception
+	 */
+	/* package */ static NodeModel createNodeModel(NodeFactory<? extends NodeModel> factory) throws Exception {
+		if (factory instanceof ConfigurableNodeFactory) {
+			ConfigurableNodeFactory<?> configurableFactory = (ConfigurableNodeFactory<?>) factory;
+			ModifiableNodeCreationConfiguration config = configurableFactory.createNodeCreationConfig();
+			// org.knime.core.node.NodeFactory.createNodeModel(NodeCreationConfiguration)
+			Method method = NodeFactory.class.getDeclaredMethod("createNodeModel", NodeCreationConfiguration.class);
+			method.setAccessible(true);
+			return (NodeModel) method.invoke(configurableFactory, config);
+		}
+		return factory.createNodeModel();
 	}
 
 	/**

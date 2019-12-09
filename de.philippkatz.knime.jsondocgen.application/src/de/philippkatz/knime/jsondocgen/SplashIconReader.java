@@ -79,7 +79,7 @@ final class SplashIconReader {
 			return null;
 		}
 
-		ImageData imageData = descriptor.getImageData();
+		ImageData imageData = descriptor.getImageData(100);
 		if (imageData == null) {
 			return null;
 		}
