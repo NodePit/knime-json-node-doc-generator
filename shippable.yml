@@ -5,10 +5,10 @@ language: java
 jdk:
   - oraclejdk8
 
-env:
-  global:
-    - KNIME_P2_FTP_USERNAME=f00d5f8e
-    - secure: rFmiqp0zNi4B+bv/jSFTs9B7o7/QDbLaHD8yX+Yan2qASCmGk78x7jIUp2N+PZT9A2DpmgzVbBo+BKLups0tQte21IZV0Z2Gm9vP0e54smMiWHvJB8c1KZRGODobzkFKqoaUWKTNx64cGoCbS8lIDsop8027VO59Lp8HB+5/5hV6An9C+I9HEBVZJqQZeFE4FMVuk+KhEdSuy2N4vXA9fQheJ42VMjEexEH6A+YQLMnWuooQa3LZzbRJoo6tCF99nf0x96a/4S71nCFMck4rc5Sdqm5uvG/b73O9xmeTSSB5dDurdOoqYhMeN37bQn4Ollw5czvDxR9DWNu44yiJxg==
+integrations:
+  key:
+    - integrationName: nodepit
+      type: pemKey
 
 build:
   cache: true
@@ -16,6 +16,17 @@ build:
     - $HOME/.m2
   ci:
     - if [ -d $HOME/.m2 ]; then du -sh $HOME/.m2; fi
-    # only use -P uploadRepo when (1) on master branch, (2) no pull request
-    - if [ "$BRANCH" == "master" ] && [ "$IS_PULL_REQUEST" == false ]; then MAVEN_PROFILE="-P uploadRepo"; fi
-    - mvn -V -B -s settings.xml clean install $MAVEN_PROFILE
+
+    # maven build
+    - mvn -V -B clean install
+
+    # only use -P uploadRepo when (1) on master or release branch, (2) no pull request
+    - >
+      if [[ "$BRANCH" =~ ^(master|release/.+)$ ]] && [ "$IS_PULL_REQUEST" == false ]; then
+        mkdir -p ~/.ssh &&
+        echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config &&
+        user_host=debian@nodepit.com &&
+        label=${BRANCH#release/} &&
+        dest_directory=/home/debian/nodepit/download/files/jsondocgen/$label &&
+        ssh-agent bash -c "ssh-add /tmp/ssh/nodepit && ssh $user_host 'mkdir -p $dest_directory' && scp -rp de.philippkatz.knime.jsondocgen.update/target/repository/* $user_host:$dest_directory";
+      fi
