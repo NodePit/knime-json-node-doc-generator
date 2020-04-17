@@ -54,7 +54,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtension;
@@ -62,6 +61,10 @@ import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.Platform;
 import org.knime.core.node.NodeLogger;
+import org.knime.core.node.extension.InvalidNodeFactoryExtensionException;
+import org.knime.core.node.extension.NodeFactoryExtension;
+import org.knime.core.node.extension.NodeFactoryExtensionManager;
+import org.knime.core.node.extension.NodeSetFactoryExtension;
 import org.knime.workbench.repository.RepositoryFactory;
 import org.knime.workbench.repository.model.AbstractContainerObject;
 import org.knime.workbench.repository.model.Category;
@@ -86,6 +89,12 @@ import org.osgi.framework.Bundle;
  * Check, if a node is deprecated through {@link #isDeprecated(String)}.
  *
  * https://bitbucket.org/KNIME/knime-core/raw/642ae0a903ba9e0078221716ef8460d9a7a5bd47/org.knime.workbench.repository/src/eclipse/org/knime/workbench/repository/RepositoryManager.java
+ * 
+ * Updated for KNIME 4.2, based on this revision:
+ * https://github.com/knime/knime-workbench/blob/763cc6a556256759998ac4a8436a934c4cf2e29b/org.knime.workbench.repository/src/eclipse/org/knime/workbench/repository/RepositoryManager.java
+ * 
+ * See also here:
+ * https://github.com/knime/knime-core/commit/d3708052dbd767b45b85bbefe1218632db81ab98#diff-9f2d2ad9cd3ba0bc838566f41c73964e
  *
  * @author Florian Georg, University of Konstanz
  * @author Thorsten Meinl, University of Konstanz
@@ -98,15 +107,10 @@ public final class RepositoryManager {
 	/** The singleton instance. */
 	public static final RepositoryManager INSTANCE = new RepositoryManager();
 
-	// ID of "node" extension point
-	private static final String ID_NODE = "org.knime.workbench.repository.nodes";
-
 	// ID of "category" extension point
 	private static final String ID_CATEGORY = "org.knime.workbench.repository.categories";
 
 	private static final String ID_META_NODE = "org.knime.workbench.repository.metanode";
-
-	private static final String ID_NODE_SET = "org.knime.workbench.repository.nodesets";
 
 	private final Root m_root = new Root();
 
@@ -234,12 +238,9 @@ public final class RepositoryManager {
 				// this should never happen, but who knows...
 				.orElse(m_root);
 
-		Stream<IConfigurationElement> elementStream = Stream.of(RepositoryManager.getExtensions(ID_NODE))
-				.flatMap(ext -> Stream.of(ext.getConfigurationElements()));
-
-		elementStream.forEach(elem -> {
+		for (NodeFactoryExtension extension : NodeFactoryExtensionManager.getInstance().getNodeFactoryExtensions()) {
 			try {
-				NodeTemplate node = RepositoryFactory.createNode(elem);
+				NodeTemplate node = RepositoryFactory.createNode(extension);
 
 				LOGGER.debug("Found node extension '" + node.getID() + "': " + node.getName());
 
@@ -258,7 +259,7 @@ public final class RepositoryManager {
 							+ ". Node will be added to 'Uncategorized' instead");
 					uncategorized.addChild(node);
 				} else {
-					String nodePluginId = elem.getNamespaceIdentifier();
+					String nodePluginId = extension.getPlugInSymbolicName();
 					String categoryPluginId = parentContainer.getContributingPlugin();
 					if (categoryPluginId == null) {
 						categoryPluginId = "";
@@ -281,77 +282,48 @@ public final class RepositoryManager {
 					}
 				}
 
-				if (isDeprecated(elem)) {
+				if (extension.isDeprecated()) {
 					deprecatedNodes.add(node.getID());
 				}
 
-			} catch (Throwable t) {
-				String message = "Node " + elem.getAttribute("factory-class") + "' from plugin '"
-						+ elem.getNamespaceIdentifier() + "' could not be created: " + t.getMessage();
-				Bundle bundle = Platform.getBundle(elem.getNamespaceIdentifier());
-
-				if (bundle == null || bundle.getState() != Bundle.ACTIVE) {
-					// if the plugin is null, the plugin could not be activated maybe due to a not
-					// activateable plugin (plugin class cannot be found)
-					message += " The corresponding plugin bundle could not be activated!";
-				}
-				LOGGER.error(message, t);
+			} catch (InvalidNodeFactoryExtensionException t) {
+				LOGGER.error(t.getMessage(), t);
 			}
-		}); // for configuration elements
-	}
-
-	private static boolean isDeprecated(IConfigurationElement elem) {
-		return "true".equalsIgnoreCase(elem.getAttribute("deprecated"));
+		} // for configuration elements
 	}
 
 	private void readNodeSets() {
-		Stream<IConfigurationElement> elementStream = Stream.of(RepositoryManager.getExtensions(ID_NODE_SET))
-				.flatMap(ext -> Stream.of(ext.getConfigurationElements()));
 
-		elementStream.forEach(elem -> {
+		for (NodeSetFactoryExtension extension : NodeFactoryExtensionManager.getInstance()
+				.getNodeSetFactoryExtensions()) {
 
-			try {
-				Collection<DynamicNodeTemplate> dynamicNodeTemplates = RepositoryFactory.createNodeSet(m_root, elem);
+			Collection<DynamicNodeTemplate> dynamicNodeTemplates = RepositoryFactory.createNodeSet(extension, m_root,
+					true);
 
-				for (DynamicNodeTemplate node : dynamicNodeTemplates) {
+			for (DynamicNodeTemplate node : dynamicNodeTemplates) {
 
-					String nodeName = node.getID();
-					nodeName = nodeName.substring(nodeName.lastIndexOf('.') + 1);
+				String nodeName = node.getID();
+				nodeName = nodeName.substring(nodeName.lastIndexOf('.') + 1);
 
-					// Ask the root to lookup the category-container located at the given path
-					IContainerObject parentContainer = m_root.findContainer(node.getCategoryPath());
+				// Ask the root to lookup the category-container located at the given path
+				IContainerObject parentContainer = m_root.findContainer(node.getCategoryPath());
 
-					// If parent category is illegal, log an error and append the node to the
-					// repository root.
-					if (parentContainer == null) {
-						LOGGER.warn("Invalid category-path for node contribution: '" + node.getCategoryPath()
-								+ "' - adding to root instead");
-						m_root.addChild(node);
-					} else {
-						// everything is fine, add the node to its parent category
-						parentContainer.addChild(node);
-					}
-
-					if (isDeprecated(elem)) {
-						deprecatedNodes.add(node.getID());
-					}
-
+				// If parent category is illegal, log an error and append the node to the
+				// repository root.
+				if (parentContainer == null) {
+					LOGGER.warn("Invalid category-path for node contribution: '" + node.getCategoryPath()
+							+ "' - adding to root instead");
+					m_root.addChild(node);
+				} else {
+					// everything is fine, add the node to its parent category
+					parentContainer.addChild(node);
 				}
 
-			} catch (Throwable t) {
-				String message = "Node " + elem.getAttribute("factory-class") + "' from plugin '"
-						+ elem.getNamespaceIdentifier() + "' could not be created.";
-				Bundle bundle = Platform.getBundle(elem.getNamespaceIdentifier());
-
-				if (bundle == null || bundle.getState() != Bundle.ACTIVE) {
-					// if the plugin is null, the plugin could not
-					// be activated maybe due to a not
-					// activateable plugin (plugin class cannot be found)
-					message += " The corresponding plugin bundle could not be activated!";
+				if (extension.isDeprecated()) {
+					deprecatedNodes.add(node.getID());
 				}
-				LOGGER.error(message, t);
 			}
-		});
+		}
 	}
 
 	/**
