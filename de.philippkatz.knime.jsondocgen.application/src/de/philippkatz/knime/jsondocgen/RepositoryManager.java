@@ -116,6 +116,9 @@ public final class RepositoryManager {
 
 	private final Set<String> deprecatedNodes = new HashSet<>();
 
+	/** They added this in KNIME 4.2. */
+	private final Set<String> hiddenNodes = new HashSet<>();
+
 	/**
 	 * Creates the repository model. This instantiates all contributed category/node
 	 * extensions found in the global Eclipse PluginRegistry, and attaches them to
@@ -285,6 +288,9 @@ public final class RepositoryManager {
 				if (extension.isDeprecated()) {
 					deprecatedNodes.add(node.getID());
 				}
+				if (extension.isHidden()) {
+					hiddenNodes.add(node.getID());
+				}
 
 			} catch (InvalidNodeFactoryExtensionException t) {
 				LOGGER.error(t.getMessage(), t);
@@ -421,6 +427,13 @@ public final class RepositoryManager {
 			readRepository();
 		}
 		return deprecatedNodes.contains(id);
+	}
+
+	public synchronized boolean isHidden(String id) {
+		if (!m_root.hasChildren()) {
+			readRepository();
+		}
+		return hiddenNodes.contains(id);
 	}
 
 }
