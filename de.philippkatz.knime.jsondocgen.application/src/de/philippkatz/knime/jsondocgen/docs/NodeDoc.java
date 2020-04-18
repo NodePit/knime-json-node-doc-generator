@@ -19,6 +19,7 @@ public final class NodeDoc extends AbstractDoc {
 		private List<View> views;
 		private String type;
 		private boolean deprecated;
+		private boolean hidden;
 		private InteractiveView interactiveView;
 		private boolean streamable;
 		public NodeDocBuilder setIntro(String intro) {
@@ -51,6 +52,10 @@ public final class NodeDoc extends AbstractDoc {
 		}
 		public NodeDocBuilder setDeprecated(boolean deprecated) {
 			this.deprecated = deprecated;
+			return this;
+		}
+		public NodeDocBuilder setHidden(boolean hidden) {
+			this.hidden = hidden;
 			return this;
 		}
 		public NodeDocBuilder setInteractiveView(InteractiveView interactiveView) {
@@ -151,6 +156,7 @@ public final class NodeDoc extends AbstractDoc {
 	public final List<View> views;
 	public final String type;
 	public final boolean deprecated;
+	public final boolean hidden;
 	public final InteractiveView interactiveView;
 	public final boolean streamable;
 
@@ -166,6 +172,7 @@ public final class NodeDoc extends AbstractDoc {
 		views = copyOrNull(builder.views);
 		type = builder.type;
 		deprecated = builder.deprecated;
+		hidden = builder.hidden;
 		interactiveView = builder.interactiveView;
 		streamable = builder.streamable;
 	}
