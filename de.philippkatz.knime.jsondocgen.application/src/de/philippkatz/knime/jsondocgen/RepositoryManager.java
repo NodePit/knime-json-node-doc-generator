@@ -60,14 +60,18 @@ import org.eclipse.core.runtime.IExtension;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.Platform;
+import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeLogger;
+import org.knime.core.node.NodeModel;
 import org.knime.core.node.extension.InvalidNodeFactoryExtensionException;
 import org.knime.core.node.extension.NodeFactoryExtension;
 import org.knime.core.node.extension.NodeFactoryExtensionManager;
 import org.knime.core.node.extension.NodeSetFactoryExtension;
+import org.knime.workbench.core.util.ImageRepository;
 import org.knime.workbench.repository.RepositoryFactory;
 import org.knime.workbench.repository.model.AbstractContainerObject;
 import org.knime.workbench.repository.model.Category;
+import org.knime.workbench.repository.model.DefaultNodeTemplate;
 import org.knime.workbench.repository.model.DynamicNodeTemplate;
 import org.knime.workbench.repository.model.IContainerObject;
 import org.knime.workbench.repository.model.IRepositoryObject;
@@ -243,7 +247,18 @@ public final class RepositoryManager {
 
 		for (NodeFactoryExtension extension : NodeFactoryExtensionManager.getInstance().getNodeFactoryExtensions()) {
 			try {
-				NodeTemplate node = RepositoryFactory.createNode(extension);
+				NodeFactory<? extends NodeModel> factory = extension.createFactory();
+
+				// Create node template and add necessary properties from
+				// extension and factory
+				@SuppressWarnings("unchecked")
+				NodeTemplate node = new DefaultNodeTemplate(
+						(Class<NodeFactory<? extends NodeModel>>) factory.getClass(), factory.getNodeName(),
+						extension.getPlugInSymbolicName(), extension.getCategoryPath(), factory.getType());
+				node.setAfterID(extension.getAfterID());
+				if (!Boolean.getBoolean("java.awt.headless")) {
+					node.setIcon(ImageRepository.getIconImage(factory));
+				}
 
 				LOGGER.debug("Found node extension '" + node.getID() + "': " + node.getName());
 
@@ -285,7 +300,7 @@ public final class RepositoryManager {
 					}
 				}
 
-				if (extension.isDeprecated()) {
+				if (extension.isDeprecated() || factory.isDeprecated()) {
 					deprecatedNodes.add(node.getID());
 				}
 				if (extension.isHidden()) {
