@@ -50,6 +50,15 @@
              <arch>x86_64</arch>
            </environment>
          </environments>
+         <dependency-resolution>
+           <extraRequirements>
+             <requirement>
+               <type>eclipse-feature</type>
+               <id>org.knime.features.core</id>
+               <versionRange>0.0.0</versionRange>
+             </requirement>
+           </extraRequirements>
+         </dependency-resolution>
        </configuration>
      </plugin>
    </plugins>
