@@ -34,34 +34,34 @@
             </artifact>
           </target>
           <environments>
-           <environment>
-             <os>linux</os>
-             <ws>gtk</ws>
-             <arch>x86_64</arch>
-           </environment>
-           <environment>
-             <os>win32</os>
-             <ws>win32</ws>
-             <arch>x86_64</arch>
-           </environment>
-           <environment>
-             <os>macosx</os>
-             <ws>cocoa</ws>
-             <arch>x86_64</arch>
-           </environment>
-         </environments>
-         <dependency-resolution>
-           <extraRequirements>
-             <requirement>
-               <type>eclipse-feature</type>
-               <id>org.knime.features.core</id>
-               <versionRange>0.0.0</versionRange>
-             </requirement>
-           </extraRequirements>
-         </dependency-resolution>
-       </configuration>
-     </plugin>
-   </plugins>
- </build>
+            <environment>
+              <os>linux</os>
+              <ws>gtk</ws>
+              <arch>x86_64</arch>
+            </environment>
+            <environment>
+              <os>win32</os>
+              <ws>win32</ws>
+              <arch>x86_64</arch>
+            </environment>
+            <environment>
+              <os>macosx</os>
+              <ws>cocoa</ws>
+              <arch>x86_64</arch>
+            </environment>
+          </environments>
+          <dependency-resolution>
+            <extraRequirements>
+              <requirement>
+                <type>eclipse-feature</type>
+                <id>org.knime.features.core</id>
+                <versionRange>0.0.0</versionRange>
+              </requirement>
+            </extraRequirements>
+          </dependency-resolution>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>
