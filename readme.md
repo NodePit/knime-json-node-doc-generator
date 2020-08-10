@@ -20,6 +20,7 @@ http://download.nodepit.com/jsondocgen/3.6
 http://download.nodepit.com/jsondocgen/3.7
 http://download.nodepit.com/jsondocgen/4.0
 http://download.nodepit.com/jsondocgen/4.1
+http://download.nodepit.com/jsondocgen/4.2
 ```
 
 Beside that, the `master` branch is available through the following software site:

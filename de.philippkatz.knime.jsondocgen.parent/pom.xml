@@ -8,17 +8,9 @@
   <packaging>pom</packaging>
 
   <properties>
-    <tycho-version>1.0.0</tycho-version>
+    <tycho-version>1.7.0</tycho-version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
-
-  <repositories>
-    <repository>
-      <id>knime-4.0</id>
-      <url>http://update.knime.org/analytics-platform/4.0/</url>
-      <layout>p2</layout>
-    </repository>
-  </repositories>
 
   <build>
     <plugins>
@@ -43,34 +35,33 @@
           </target>
           <environments>
             <environment>
-             <os>linux</os>
-             <ws>gtk</ws>
-             <arch>x86</arch>
-           </environment>
-           <environment>
-             <os>linux</os>
-             <ws>gtk</ws>
-             <arch>x86_64</arch>
-           </environment>
-           <environment>
-             <os>win32</os>
-             <ws>win32</ws>
-             <arch>x86</arch>
-           </environment>
-           <environment>
-             <os>win32</os>
-             <ws>win32</ws>
-             <arch>x86_64</arch>
-           </environment>
-           <environment>
-             <os>macosx</os>
-             <ws>cocoa</ws>
-             <arch>x86_64</arch>
-           </environment>
-         </environments>
-       </configuration>
-     </plugin>
-   </plugins>
- </build>
+              <os>linux</os>
+              <ws>gtk</ws>
+              <arch>x86_64</arch>
+            </environment>
+            <environment>
+              <os>win32</os>
+              <ws>win32</ws>
+              <arch>x86_64</arch>
+            </environment>
+            <environment>
+              <os>macosx</os>
+              <ws>cocoa</ws>
+              <arch>x86_64</arch>
+            </environment>
+          </environments>
+          <dependency-resolution>
+            <extraRequirements>
+              <requirement>
+                <type>eclipse-feature</type>
+                <id>org.knime.features.core</id>
+                <versionRange>0.0.0</versionRange>
+              </requirement>
+            </extraRequirements>
+          </dependency-resolution>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>
