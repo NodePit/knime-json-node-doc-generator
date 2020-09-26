@@ -4,3 +4,7 @@ target/
 .project
 .settings/
 lib/
+# temporary files by Tycho Pomless
+# (they are removed automatically after the build anyways)
+.polyglot*
+.META-INF*
