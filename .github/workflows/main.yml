@@ -25,8 +25,7 @@ jobs:
 
       - name: Publish to NodePit
         # https://stackoverflow.com/questions/58139406/only-run-job-on-specific-branch-with-github-actions
-        # TODO re-enable when this works
-        # if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/release/')
+        if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/release/')
         run: |
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
