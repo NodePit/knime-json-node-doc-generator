@@ -61,6 +61,15 @@
           </dependency-resolution>
         </configuration>
       </plugin>
+
+      <plugin>
+        <groupId>org.eclipse.tycho</groupId>
+        <artifactId>tycho-compiler-plugin</artifactId>
+        <version>${tycho-version}</version>
+        <configuration>
+          <useProjectSettings>false</useProjectSettings>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 
