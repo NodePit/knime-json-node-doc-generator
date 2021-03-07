@@ -13,22 +13,26 @@ jobs:
         with:
           java-version: '8'
 
-      - name: Build (and publish to NodePit when on master or release/*)
+      # TODO consider caching $HOME/.m2
+      # https://docs.github.com/en/actions/guides/caching-dependencies-to-speed-up-workflows
+
+      - name: Build
+        run: mvn -V -B clean install
+
+      - name: Publish to NodePit
+        # https://stackoverflow.com/questions/58139406/only-run-job-on-specific-branch-with-github-actions
+        # TODO re-enable when this works
+        # if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/release/')
         run: |
-          if [ -d $HOME/.m2 ]; then du -sh $HOME/.m2; fi
-
-          # maven build
-          mvn -V -B clean install
-
-          # only use -P release when (1) on master branch, (2) no pull request
-          # TODO move this into a separate action?!
-          # TODO need to key!
-          branch=${GITHUB_REF#refs/heads/}
-          if [[ "$branch" =~ ^(master|release/.+)$ ]]; then 
-            mkdir -p ~/.ssh &&
-            echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config &&
-            user_host=debian@nodepit.com &&
-            label=${branch#release/} &&
-            dest_directory=/home/debian/nodepit/download/files/jsondocgen/$label &&
-            ssh-agent bash -c "ssh-add /tmp/ssh/nodepit && ssh $user_host 'mkdir -p $dest_directory' && scp -rp de.philippkatz.knime.jsondocgen.update/target/repository/* $user_host:$dest_directory";
-          fi
+          which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y ) &&
+          eval $(ssh-agent -s) &&
+          mkdir -p ~/.ssh &&
+          chmod 700 ~/.ssh &&
+          echo -e "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa &&
+          chmod 600 ~/.ssh/id_rsa &&
+          echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config &&
+          user_host=debian@nodepit.com &&
+          branch=${GITHUB_REF#refs/heads/} &&
+          label=${branch#release/} &&
+          dest_directory=/home/debian/nodepit/download/files/jsondocgen/$label &&
+          ssh-agent bash -c "ssh-add /tmp/ssh/nodepit && ssh $user_host 'mkdir -p $dest_directory' && scp -rp de.philippkatz.knime.jsondocgen.update/target/repository/* $user_host:$dest_directory";
