@@ -16,17 +16,17 @@ Installation
 The tool is available through the following software site (the version numbers reflect the branch names e.g. `release/4.1` -- in case there’s no explicit branch for a version, the update site will fall back to the most recent previous version):
 
 ```
-http://download.nodepit.com/jsondocgen/3.6
-http://download.nodepit.com/jsondocgen/3.7
-http://download.nodepit.com/jsondocgen/4.0
-http://download.nodepit.com/jsondocgen/4.1
-http://download.nodepit.com/jsondocgen/4.2
+https://download.nodepit.com/jsondocgen/3.6
+https://download.nodepit.com/jsondocgen/3.7
+https://download.nodepit.com/jsondocgen/4.0
+https://download.nodepit.com/jsondocgen/4.1
+https://download.nodepit.com/jsondocgen/4.2
 ```
 
 Beside that, the `master` branch is available through the following software site:
 
 ```
-http://download.nodepit.com/jsondocgen/master
+https://download.nodepit.com/jsondocgen/master
 ```
 
 Open KNIME, go to **File → Preferences → Install/Update → Available Software
