@@ -13,8 +13,12 @@ jobs:
         with:
           java-version: '8'
 
-      # TODO consider caching $HOME/.m2
       # https://docs.github.com/en/actions/guides/caching-dependencies-to-speed-up-workflows
+      - name: Cache .m2
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2
+          key: 'm2-cache'
 
       - name: Build
         run: mvn -V -B clean install
