@@ -495,7 +495,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 	/**
 	 * Create the {@link NodeModel} for the given {@link NodeFactory}. Apply
 	 * workaround for {@link ConfigurableNodeFactory}; see here:
-	 * https://github.com/qqilihq/knime-json-node-doc-generator/issues/17
+	 * https://github.com/NodePit/knime-json-node-doc-generator/issues/17
 	 * 
 	 * @param factory
 	 * @return

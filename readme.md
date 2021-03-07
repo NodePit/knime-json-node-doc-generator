@@ -1,7 +1,7 @@
 KNIME JSON Node Documentation Generator
 =======================================
 
-[![Actions Status](https://github.com/qqilihq/knime-json-node-doc-generator/workflows/CI/badge.svg)](https://github.com/qqilihq/knime-json-node-doc-generator/actions)
+[![Actions Status](https://github.com/NodePit/knime-json-node-doc-generator/workflows/CI/badge.svg)](https://github.com/NodePit/knime-json-node-doc-generator/actions)
 
 Builds JSON files containing KNIME node, port, and splash icon documentations, based on and similar to
 KNIME’s `org.knime.workbench.repository.NodeDocumentationGenerator`, but with a
@@ -258,7 +258,7 @@ License
 Copyright (c) 2017 – 2021 Philipp Katz
 
 [1]: https://seleniumnodes.com
-[2]: https://github.com/qqilihq/knime-json-node-doc-generator/issues
+[2]: https://github.com/NodePit/knime-json-node-doc-generator/issues
 [3]: https://seleniumnodes.com/docs
 [4]: https://nodepit.com
 [5]: https://en.wikipedia.org/wiki/Base64
