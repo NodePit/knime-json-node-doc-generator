@@ -29,11 +29,11 @@ jobs:
           echo -e "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
-          user_host=debian@nodepit.com
           branch=${GITHUB_REF#refs/heads/}
           label=${branch#release/}
           dest_directory=/home/debian/nodepit/download/files/jsondocgen/$label
-          ssh $user_host "mkdir -p $dest_directory"
-          scp -rp de.philippkatz.knime.jsondocgen.update/target/repository/* $user_host:$dest_directory
+          ssh $USER_HOST "mkdir -p $dest_directory"
+          scp -rp de.philippkatz.knime.jsondocgen.update/target/repository/* $USER_HOST:$dest_directory
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          USER_HOST: debian@nodepit.com
