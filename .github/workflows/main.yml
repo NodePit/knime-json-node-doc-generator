@@ -35,7 +35,7 @@ jobs:
           branch=${GITHUB_REF#refs/heads/}
           label=${branch#release/}
           dest_directory=/home/debian/nodepit/download/files/jsondocgen/$label
-          ssh $user_host 'mkdir -p $dest_directory'
+          ssh $user_host "mkdir -p $dest_directory"
           scp -rp de.philippkatz.knime.jsondocgen.update/target/repository/* $user_host:$dest_directory
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
