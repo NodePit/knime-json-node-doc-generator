@@ -1,7 +1,7 @@
 KNIME JSON Node Documentation Generator
 =======================================
 
-[![Run Status](https://api.shippable.com/projects/590caf4e50a8640700690ab1/badge?branch=master)](https://app.shippable.com/github/qqilihq/knime-json-node-doc-generator)
+[![Actions Status](https://github.com/qqilihq/knime-json-node-doc-generator/workflows/CI/badge.svg)](https://github.com/qqilihq/knime-json-node-doc-generator/actions)
 
 Builds JSON files containing KNIME node, port, and splash icon documentations, based on and similar to
 KNIME’s `org.knime.workbench.repository.NodeDocumentationGenerator`, but with a
@@ -16,17 +16,17 @@ Installation
 The tool is available through the following software site (the version numbers reflect the branch names e.g. `release/4.1` -- in case there’s no explicit branch for a version, the update site will fall back to the most recent previous version):
 
 ```
-http://download.nodepit.com/jsondocgen/3.6
-http://download.nodepit.com/jsondocgen/3.7
-http://download.nodepit.com/jsondocgen/4.0
-http://download.nodepit.com/jsondocgen/4.1
-http://download.nodepit.com/jsondocgen/4.2
+https://download.nodepit.com/jsondocgen/3.6
+https://download.nodepit.com/jsondocgen/3.7
+https://download.nodepit.com/jsondocgen/4.0
+https://download.nodepit.com/jsondocgen/4.1
+https://download.nodepit.com/jsondocgen/4.2
 ```
 
 Beside that, the `master` branch is available through the following software site:
 
 ```
-http://download.nodepit.com/jsondocgen/master
+https://download.nodepit.com/jsondocgen/master
 ```
 
 Open KNIME, go to **File → Preferences → Install/Update → Available Software
@@ -255,7 +255,7 @@ License
 
 - - -
 
-Copyright (c) 2017, 2018, 2019, 2020 Philipp Katz
+Copyright (c) 2017 – 2021 Philipp Katz
 
 [1]: https://seleniumnodes.com
 [2]: https://github.com/qqilihq/knime-json-node-doc-generator/issues

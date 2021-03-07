@@ -1,0 +1,42 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '8'
+
+      # https://docs.github.com/en/actions/guides/caching-dependencies-to-speed-up-workflows
+      - name: Cache .m2
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2
+          key: 'm2-cache'
+
+      - name: Build
+        run: mvn -V -B clean install
+
+      - name: Publish to NodePit
+        # https://stackoverflow.com/questions/58139406/only-run-job-on-specific-branch-with-github-actions
+        if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/release/')
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          echo -e "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+          branch=${GITHUB_REF#refs/heads/}
+          label=${branch#release/}
+          dest_directory=/home/debian/nodepit/download/files/jsondocgen/$label
+          ssh $USER_HOST "mkdir -p $dest_directory"
+          scp -rp de.philippkatz.knime.jsondocgen.update/target/repository/* $USER_HOST:$dest_directory
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          USER_HOST: debian@nodepit.com
