@@ -255,7 +255,7 @@ License
 
 - - -
 
-Copyright (c) 2017, 2018, 2019, 2020 Philipp Katz
+Copyright (c) 2017 – 2021 Philipp Katz
 
 [1]: https://seleniumnodes.com
 [2]: https://github.com/qqilihq/knime-json-node-doc-generator/issues
