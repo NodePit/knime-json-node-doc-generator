@@ -207,7 +207,7 @@ The generated `portDocumentation.json` JSON file’s structure looks as follows:
 }
 ```
 
-The generated `portDocumentation.json` JSON file’s structure looks as follows:
+The generated `splashIcons.json` JSON file’s structure looks as follows:
 
 ```
 [
