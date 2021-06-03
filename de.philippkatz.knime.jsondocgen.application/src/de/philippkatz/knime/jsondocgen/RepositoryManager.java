@@ -318,8 +318,13 @@ public final class RepositoryManager {
 		for (NodeSetFactoryExtension extension : NodeFactoryExtensionManager.getInstance()
 				.getNodeSetFactoryExtensions()) {
 
-			Collection<DynamicNodeTemplate> dynamicNodeTemplates = RepositoryFactory.createNodeSet(extension, m_root,
-					true);
+			Collection<DynamicNodeTemplate> dynamicNodeTemplates;
+			try {
+				dynamicNodeTemplates = RepositoryFactory.createNodeSet(extension, m_root, true);
+			} catch (Exception e) {
+				LOGGER.warn("Caught exeption for " + extension.getClass().getName() + ": " + e.getMessage(), e);
+				continue;
+			}
 
 			for (DynamicNodeTemplate node : dynamicNodeTemplates) {
 
