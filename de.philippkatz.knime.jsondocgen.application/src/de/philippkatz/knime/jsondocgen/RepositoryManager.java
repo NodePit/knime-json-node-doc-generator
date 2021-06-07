@@ -321,7 +321,7 @@ public final class RepositoryManager {
 			Collection<DynamicNodeTemplate> dynamicNodeTemplates;
 			try {
 				dynamicNodeTemplates = RepositoryFactory.createNodeSet(extension, m_root, true);
-			} catch (Exception e) {
+			} catch (NoClassDefFoundError | Exception e) {
 				LOGGER.warn("Caught exeption for " + extension.getClass().getName() + ": " + e.getMessage(), e);
 				continue;
 			}
