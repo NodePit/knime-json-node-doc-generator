@@ -15,6 +15,7 @@ public class PortTypeDoc {
 		private boolean hidden;
 		private boolean registered;
 		private Set<PortTypeDocBuilder> children;
+		private String contributingPlugin;
 
 		private PortTypeDocBuilder(String objectClass) {
 			this.objectClass = objectClass;
@@ -57,6 +58,11 @@ public class PortTypeDoc {
 
 		public PortTypeDocBuilder setRegistered(boolean registered) {
 			this.registered = registered;
+			return this;
+		}
+
+		public PortTypeDocBuilder setContributingPlugin(String contributingPlugin) {
+			this.contributingPlugin = contributingPlugin;
 			return this;
 		}
 
@@ -104,6 +110,8 @@ public class PortTypeDoc {
 	public final boolean hidden;
 	public final boolean registered;
 	public final Set<PortTypeDoc> children;
+	/** @since 1.11 */
+	public final String contributingPlugin;
 
 	private PortTypeDoc(PortTypeDocBuilder builder) {
 		name = builder.name;
@@ -113,6 +121,7 @@ public class PortTypeDoc {
 		hidden = builder.hidden;
 		registered = builder.registered;
 		children = buildChildren(builder);
+		contributingPlugin = builder.contributingPlugin;
 	}
 
 	private static Set<PortTypeDoc> buildChildren(PortTypeDocBuilder builder) {

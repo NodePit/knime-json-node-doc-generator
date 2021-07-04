@@ -60,11 +60,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.xml.transform.TransformerException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
+import org.eclipse.core.runtime.IExtensionPoint;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
 import org.eclipse.swt.widgets.Display;
@@ -270,9 +273,21 @@ public class JsonNodeDocuGenerator implements IApplication {
 			Map<Class<? extends PortObject>, PortType> portTypes = PortTypeRegistry.getInstance().availablePortTypes()
 					.stream().collect(Collectors.toMap(PortType::getPortObjectClass, Function.identity()));
 
+			// additional information from extension point `org.knime.core.PortType`
+			// TODO -- should we better take specClass additionally?
+			Map<String, String> objectClassToPluginId = new HashMap<>();
+			IExtensionPoint point = Platform.getExtensionRegistry().getExtensionPoint("org.knime.core.PortType");
+			Stream.of(point.getExtensions()).flatMap(ext -> Stream.of(ext.getConfigurationElements())).forEach(e -> {
+				String extensionIdentifier = e.getDeclaringExtension().getNamespaceIdentifier();
+				String objectClass = e.getAttribute("objectClass");
+				if (extensionIdentifier != null) {
+					objectClassToPluginId.put(objectClass, extensionIdentifier);
+				}
+			});
+
 			LOGGER.debug(String.format("Found %s ports to process", portTypes.size()));
 
-			processPorts(portTypes.keySet(), portTypes, builders);
+			processPorts(portTypes.keySet(), portTypes, builders, objectClassToPluginId);
 
 			// get the root element (all PortObjects inherit from this interface).
 			PortTypeDoc rootElement = builders.get(PortObject.class).build();
@@ -307,10 +322,13 @@ public class JsonNodeDocuGenerator implements IApplication {
 	 *            All *registered* port types.
 	 * @param builders
 	 *            Map with builders for appending the children.
+	 * @param objectClassToExtensionId
+	 *            Mapping from object class to the extension ID. 
 	 */
 	private static void processPorts(Collection<Class<? extends PortObject>> portObjectClasses,
 			Map<Class<? extends PortObject>, PortType> registeredPortTypes,
-			Map<Class<? extends PortObject>, PortTypeDocBuilder> builders) {
+			Map<Class<? extends PortObject>, PortTypeDocBuilder> builders,
+			Map<String, String> objectClassToExtensionId) {
 
 		portObjectClasses.forEach(portObjectClass -> {
 
@@ -320,25 +338,29 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 			List<Class<? extends PortObject>> parentPortObjectClasses = getParentPortObjectClasses(portObjectClass);
 
-			processPorts(parentPortObjectClasses, registeredPortTypes, builders);
+			processPorts(parentPortObjectClasses, registeredPortTypes, builders, objectClassToExtensionId);
 
 			if (builder == null) { // haven't processed this type yet
 				PortType parent = registeredPortTypes.get(portObjectClass);
 				if (parent != null) {
 					// parent port type is registered via extension point
-					builder = PortTypeDoc.builderForObjectClass(parent.getPortObjectClass().getName());
+					String objectClassName = parent.getPortObjectClass().getName();
+					builder = PortTypeDoc.builderForObjectClass(objectClassName);
 					builder.setName(parent.getName());
 					builder.setSpecClass(parent.getPortObjectSpecClass().getName());
 					builder.setColor(makeHexColor(parent.getColor()));
 					builder.setHidden(parent.isHidden());
 					builder.setRegistered(true);
+					builder.setContributingPlugin(objectClassToExtensionId.get(objectClassName));
 				} else {
 					// not registered -- only create dummy intermediate; this is e.g. the case for
 					// org.knime.core.node.port.AbstractPortObject which only serve as
 					// implementation helper and are not supposed to be used directly
-					builder = PortTypeDoc.builderForObjectClass(portObjectClass.getName());
+					String objectClassName = portObjectClass.getName();
+					builder = PortTypeDoc.builderForObjectClass(objectClassName);
 					builder.setHidden(true);
 					builder.setRegistered(false);
+					builder.setContributingPlugin(objectClassToExtensionId.get(objectClassName));
 				}
 				builders.put(portObjectClass, builder);
 			}
