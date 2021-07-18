@@ -22,6 +22,7 @@ public final class NodeDoc extends AbstractDoc {
 		private boolean hidden;
 		private InteractiveView interactiveView;
 		private boolean streamable;
+		private List<Link> links;
 		public NodeDocBuilder setIntro(String intro) {
 			this.intro = intro;
 			return this;
@@ -78,6 +79,13 @@ public final class NodeDoc extends AbstractDoc {
 		}
 		public NodeDocBuilder setStreamable(boolean streamable) {
 			this.streamable = streamable;
+			return this;
+		}
+		public NodeDocBuilder addLink(Link link) {
+			if (links == null) {
+				links = new ArrayList<>();
+			}
+			links.add(link);
 			return this;
 		}
 		public NodeDoc build() {
@@ -143,6 +151,15 @@ public final class NodeDoc extends AbstractDoc {
 			this.description = description;
 		}
 	}
+	/** Added in v1.11 */
+	public static final class Link {
+		public final String href;
+		public final String text;
+		public Link(String href, String text) {
+			this.href = href;
+			this.text = text;
+		}
+	}
 
 	public final String intro;
 	public final List<OptionTab> optionTabs;
@@ -159,6 +176,8 @@ public final class NodeDoc extends AbstractDoc {
 	public final boolean hidden;
 	public final InteractiveView interactiveView;
 	public final boolean streamable;
+	/** Added in v1.11 */
+	public final List<Link> links;
 
 	private NodeDoc(NodeDocBuilder builder) {
 		super(builder);
@@ -175,6 +194,7 @@ public final class NodeDoc extends AbstractDoc {
 		hidden = builder.hidden;
 		interactiveView = builder.interactiveView;
 		streamable = builder.streamable;
+		links = builder.links;
 	}
 
 	private static List<String> convert(List<Port> ports) {
