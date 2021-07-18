@@ -16,6 +16,7 @@ import org.w3c.dom.Node;
 
 import de.philippkatz.knime.jsondocgen.docs.NodeDoc;
 import de.philippkatz.knime.jsondocgen.docs.NodeDoc.InteractiveView;
+import de.philippkatz.knime.jsondocgen.docs.NodeDoc.Link;
 import de.philippkatz.knime.jsondocgen.docs.NodeDoc.NodeDocBuilder;
 import de.philippkatz.knime.jsondocgen.docs.NodeDoc.Option;
 import de.philippkatz.knime.jsondocgen.docs.NodeDoc.OptionTab;
@@ -71,6 +72,14 @@ public final class NodeDocJsonParser {
 			}
 		} else {
 			builder.setOptions(parseOptions(getNodes(nodeNoNS, "/knimeNode/fullDescription/option")));
+		}
+		
+		// links (added in v1.11)
+		List<Node> links = getNodes(nodeNoNS, "/knimeNode/fullDescription/link");
+		for (Node link : links) {
+			String href = getAttribute(link, "href");
+			String text = trim(getInnerXml(link));
+			builder.addLink(new Link(href, text));
 		}
 
 		// in ports

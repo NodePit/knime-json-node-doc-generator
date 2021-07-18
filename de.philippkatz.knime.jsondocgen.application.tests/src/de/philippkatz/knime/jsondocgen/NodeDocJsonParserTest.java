@@ -132,6 +132,18 @@ public class NodeDocJsonParserTest {
 		assertEquals(5, nodeDoc.optionTabs.get(0).options.size());
 	}
 
+	@Test
+	public void parsing_XML_with_links() throws Exception {
+		Document doc = readDoc("/GroupByNodeFactory.xml");
+		NodeDoc nodeDoc = NodeDocJsonParser.parse(doc);
+
+		assertEquals(1, nodeDoc.links.size());
+		assertEquals(
+				"https://www.knime.com/knime-introductory-course/chapter3/section2/classic-aggregations-with-groupby-node",
+				nodeDoc.links.get(0).href);
+		assertEquals("KNIME E-Learning Course: Classic Aggregations with GroupBy node", nodeDoc.links.get(0).text);
+	}
+
 	private static Document readDoc(String resourcePath) throws Exception {
 		Objects.requireNonNull(resourcePath, "resourcePath must not be null");
 		try (InputStream resourceStream = NodeDocJsonParserTest.class.getResourceAsStream(resourcePath)) {
