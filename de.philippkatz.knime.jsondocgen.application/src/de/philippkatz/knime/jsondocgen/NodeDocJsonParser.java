@@ -157,7 +157,7 @@ public final class NodeDocJsonParser {
 			String name = getAttribute(port, "name");
 			String groupIdentifier = getAttribute(port, "group-identifier");
 			String description = trim(getInnerXml(port));
-			portsDocs.add(new DynamicPortGroup(insertBefore, name, groupIdentifier, description));
+			portsDocs.add(new DynamicPortGroup(insertBefore, name, groupIdentifier, description, /* not know at this point */ null));
 		}
 		return portsDocs;
 	}

@@ -151,12 +151,12 @@ public class NodeDocJsonParserTest {
 
 		assertEquals(2, nodeDoc.dynamicInPorts.size());
 
-		assertEquals(0, nodeDoc.dynamicInPorts.get(0).insertBefore);
+		assertEquals((Integer) 0, nodeDoc.dynamicInPorts.get(0).insertBefore);
 		assertEquals("File system connection", nodeDoc.dynamicInPorts.get(0).name);
 		assertEquals("File System Connection", nodeDoc.dynamicInPorts.get(0).groupIdentifier);
 		assertEquals("The file system connection.", nodeDoc.dynamicInPorts.get(0).description);
 
-		assertEquals(1, nodeDoc.dynamicInPorts.get(1).insertBefore);
+		assertEquals((Integer) 1, nodeDoc.dynamicInPorts.get(1).insertBefore);
 		assertEquals("Additional input tables", nodeDoc.dynamicInPorts.get(1).name);
 		assertEquals("Sheet Input Ports", nodeDoc.dynamicInPorts.get(1).groupIdentifier);
 		assertEquals("Additional data table to write.", nodeDoc.dynamicInPorts.get(1).description);

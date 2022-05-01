@@ -58,6 +58,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -75,6 +76,9 @@ import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.context.ModifiableNodeCreationConfiguration;
 import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.core.node.context.ports.ConfigurablePortGroup;
+import org.knime.core.node.context.ports.ModifiablePortsConfiguration;
+import org.knime.core.node.context.ports.PortGroupConfiguration;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
@@ -90,6 +94,7 @@ import org.w3c.dom.Element;
 import de.philippkatz.knime.jsondocgen.docs.CategoryDoc;
 import de.philippkatz.knime.jsondocgen.docs.CategoryDoc.CategoryDocBuilder;
 import de.philippkatz.knime.jsondocgen.docs.NodeDoc.DynamicPortGroup;
+import de.philippkatz.knime.jsondocgen.docs.NodeDoc.DynamicPortType;
 import de.philippkatz.knime.jsondocgen.docs.NodeDoc.NodeDocBuilder;
 import de.philippkatz.knime.jsondocgen.docs.NodeDoc.Port;
 import de.philippkatz.knime.jsondocgen.docs.PortTypeDoc;
@@ -435,17 +440,15 @@ public class JsonNodeDocuGenerator implements IApplication {
 			try {
 				NodeModel nodeModel = createNodeModel(factory);
 				PortType[] outPorts = getPorts(nodeModel, false);
-				// TODO need to consider dynamic ports here?!
 				builder.setOutPorts(mergePortInfo(builder.build().outPorts, outPorts, current.getID()));
 				PortType[] inPorts = getPorts(nodeModel, true);
-				// TODO need to consider dynamic ports here?!
 				builder.setInPorts(mergePortInfo(builder.build().inPorts, inPorts, current.getID()));
 				builder.setStreamable(isStreamable(nodeModel));
-				// TODO merge this “dynamic port” shit here
-				// https://github.com/knime/knime-workbench/blob/9b42402105c8f8ebb3a74ae8fa869522d263bf68/org.knime.workbench.repository/src/eclipse/org/knime/workbench/repository/nodalizer/NodeInfo.java
-				// https://github.com/knime/knime-workbench/blob/master/org.knime.workbench.repository/src/eclipse/org/knime/workbench/repository/nodalizer/Nodalizer.java#L646
-				builder.setDynamicInPorts(getDynamicPorts(factory, PortDirection.In));
-				builder.setDynamicOutPorts(getDynamicPorts(factory, PortDirection.Out));
+				// merge this “dynamic port” shit here
+				List<DynamicPortGroup> dynamicInPorts = getDynamicPorts(factory, PortDirection.In);
+				List<DynamicPortGroup> dynamicOutPorts = getDynamicPorts(factory, PortDirection.Out);
+				builder.setDynamicInPorts(mergeDynamicPortInfo(builder.build().dynamicInPorts, dynamicInPorts, current.getID()));
+				builder.setDynamicOutPorts(mergeDynamicPortInfo(builder.build().dynamicOutPorts, dynamicOutPorts, current.getID()));
 			} catch (Throwable t) {
 				LOGGER.warn(String.format("Could not create NodeModel for %s", factory.getClass().getName()), t);
 			}
@@ -588,19 +591,64 @@ public class JsonNodeDocuGenerator implements IApplication {
 		return portTypes;
 	}
 	
-	private static List<DynamicPortGroup> getDynamicPorts(NodeFactory<? extends NodeModel> factory, PortDirection portDirection) {
+	private static List<DynamicPortGroup> getDynamicPorts(NodeFactory<? extends NodeModel> factory,
+			PortDirection portDirection) {
 		if (factory instanceof ConfigurableNodeFactory) {
+			// TODO implement this; look at this mess:
+			// https://github.com/knime/knime-workbench/commit/508b59c8f475277df5c095567c8f441eda6808cd
+			// https://github.com/knime/knime-workbench/blob/master/org.knime.workbench.repository/src/eclipse/org/knime/workbench/repository/nodalizer/Nodalizer.java#L646
+			// https://github.com/knime/knime-workbench/blob/9b42402105c8f8ebb3a74ae8fa869522d263bf68/org.knime.workbench.repository/src/eclipse/org/knime/workbench/repository/nodalizer/NodeInfo.java
 			@SuppressWarnings("unchecked")
 			Node node = new Node((NodeFactory<NodeModel>) factory);
-			node.getCopyOfCreationConfig().ifPresent(nodeCreationConfig -> {
-				nodeCreationConfig.getPortConfig().ifPresent(portsConfig -> {
-					// TODO implement this; look at this mess:
-					// https://github.com/knime/knime-workbench/commit/508b59c8f475277df5c095567c8f441eda6808cd
-					// https://github.com/knime/knime-workbench/blob/master/org.knime.workbench.repository/src/eclipse/org/knime/workbench/repository/nodalizer/Nodalizer.java
-				});
-			});
+			if (node.getCopyOfCreationConfig().isPresent()) {
+				ModifiableNodeCreationConfiguration nodeCreationConfig = node.getCopyOfCreationConfig().get();
+				if (nodeCreationConfig.getPortConfig().isPresent()) {
+					ModifiablePortsConfiguration portsConfig = nodeCreationConfig.getPortConfig().get();
+					List<DynamicPortGroup> dynamicPortGroups = new ArrayList<>();
+					for (String portGroupName : portsConfig.getPortGroupNames()) {
+						PortGroupConfiguration groupConfig = portsConfig.getGroup(portGroupName);
+						if (groupConfig instanceof ConfigurablePortGroup
+								&& (groupConfig.definesInputPorts() && portDirection == PortDirection.In
+										|| groupConfig.definesOutputPorts() && portDirection == PortDirection.Out)) {
+							ConfigurablePortGroup configurablePortGroup = (ConfigurablePortGroup) groupConfig;
+							PortType[] supportedTypes = configurablePortGroup.getSupportedPortTypes();
+							List<DynamicPortType> dynamicPortTypes = new ArrayList<>();
+							for (PortType supportedType : supportedTypes) {
+								dynamicPortTypes.add(new DynamicPortType(supportedType.getPortObjectClass().getName()));
+							}
+							dynamicPortGroups
+									.add(new DynamicPortGroup(null, null, portGroupName, null, dynamicPortTypes));
+						}
+					}
+					return dynamicPortGroups;
+				}
+			}
 		}
 		return Collections.emptyList();
+	}
+
+	private static List<DynamicPortGroup> mergeDynamicPortInfo(List<DynamicPortGroup> docPorts,
+			List<DynamicPortGroup> implPorts, String nodeId) {
+		if (docPorts.size() != implPorts.size()) {
+			LOGGER.warn(String.format("%s: Documentation does not match implementation: %s vs. %s ports", nodeId,
+					docPorts.size(), implPorts.size()));
+		}
+		List<DynamicPortGroup> merged = new ArrayList<>();
+		for (DynamicPortGroup implPort : implPorts) {
+			// find the port group in the docs, and merge them
+			Optional<DynamicPortGroup> optionalDocPort = docPorts.stream()
+					.filter(p -> p.groupIdentifier.equals(implPort.groupIdentifier)).findFirst();
+			if (optionalDocPort.isPresent()) {
+				DynamicPortGroup docPort = optionalDocPort.get();
+				merged.add(new DynamicPortGroup(docPort.insertBefore, docPort.name, docPort.groupIdentifier,
+						docPort.description, implPort.types));
+			} else {
+				LOGGER.warn(String.format("%s, No port group with identifier %s in node docs", nodeId,
+						implPort.groupIdentifier));
+				merged.add(implPort);
+			}
+		}
+		return merged;
 	}
 
 	/**
