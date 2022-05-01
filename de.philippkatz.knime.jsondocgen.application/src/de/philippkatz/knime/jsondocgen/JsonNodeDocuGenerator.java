@@ -439,9 +439,9 @@ public class JsonNodeDocuGenerator implements IApplication {
 			builder.setHidden(hidden);
 			try {
 				NodeModel nodeModel = createNodeModel(factory);
-				PortType[] outPorts = getPorts(nodeModel, false);
+				PortType[] outPorts = getPorts(factory, false);
 				builder.setOutPorts(mergePortInfo(builder.build().outPorts, outPorts, current.getID()));
-				PortType[] inPorts = getPorts(nodeModel, true);
+				PortType[] inPorts = getPorts(factory, true);
 				builder.setInPorts(mergePortInfo(builder.build().inPorts, inPorts, current.getID()));
 				builder.setStreamable(isStreamable(nodeModel));
 				// merge this “dynamic port” shit here
@@ -563,31 +563,22 @@ public class JsonNodeDocuGenerator implements IApplication {
 	 * Get runtime port type information via reflection (this information cannot be
 	 * accessed via public API).
 	 * 
-	 * @param nodeModel
-	 *            The node model instance.
+	 * @param nodeFactory
+	 *            The node factory.
 	 * @param inPort
 	 *            <code>true</code> for input port, <code>false</code> for output
 	 *            port.
 	 * @return The port type information.
-	 * @throws Exception
-	 *             In case anything goes wrong.
 	 */
-	/* package */ static PortType[] getPorts(NodeModel nodeModel, boolean inPort) throws Exception {
-		// TODO I see that we could probably get this through the org.knime.core.node.Node class
-
-		Method getPortType = NodeModel.class.getDeclaredMethod(inPort ? "getInPortType" : "getOutPortType", int.class);
-		getPortType.setAccessible(true);
-
-		Method getNrPorts = NodeModel.class.getDeclaredMethod(inPort ? "getNrInPorts" : "getNrOutPorts");
-		getNrPorts.setAccessible(true);
-		int nrPorts = (int) getNrPorts.invoke(nodeModel);
-
-		PortType[] portTypes = new PortType[nrPorts];
-
-		for (int index = 0; index < nrPorts; index++) {
-			portTypes[index] = (PortType) getPortType.invoke(nodeModel, index);
+	/* package */ static PortType[] getPorts(NodeFactory<? extends NodeModel> factory, boolean inPort) {
+		@SuppressWarnings("unchecked")
+		Node node = new Node((NodeFactory<NodeModel>) factory);
+		int nrPorts = inPort ? node.getNrInPorts() : node.getNrOutPorts();
+		PortType[] portTypes = new PortType[nrPorts - 1];
+		// start at 1, b/c of implicit flow variable port
+		for (int index = 1; index < nrPorts; index++) {
+			portTypes[index - 1] = inPort ? node.getInputType(index) : node.getOutputType(index);
 		}
-
 		return portTypes;
 	}
 	
