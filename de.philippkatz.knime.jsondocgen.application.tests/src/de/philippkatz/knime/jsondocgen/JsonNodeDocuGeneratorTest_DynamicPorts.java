@@ -50,5 +50,7 @@ public class JsonNodeDocuGeneratorTest_DynamicPorts {
 		}
 
 	}
+	
+	// TODO add asserts
 
 }

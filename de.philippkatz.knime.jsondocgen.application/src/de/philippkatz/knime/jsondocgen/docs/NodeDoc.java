@@ -189,6 +189,7 @@ public final class NodeDoc extends AbstractDoc {
 		}
 	}
 	/** @since v1.12 */
+	// TODO wrapper class (currently?!) not needed
 	public static final class DynamicPortType {
 		public final String portObjectClass;
 		public DynamicPortType(String portObjectClass) {

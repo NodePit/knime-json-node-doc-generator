@@ -597,7 +597,6 @@ public class JsonNodeDocuGenerator implements IApplication {
 			// TODO implement this; look at this mess:
 			// https://github.com/knime/knime-workbench/commit/508b59c8f475277df5c095567c8f441eda6808cd
 			// https://github.com/knime/knime-workbench/blob/master/org.knime.workbench.repository/src/eclipse/org/knime/workbench/repository/nodalizer/Nodalizer.java#L646
-			// https://github.com/knime/knime-workbench/blob/9b42402105c8f8ebb3a74ae8fa869522d263bf68/org.knime.workbench.repository/src/eclipse/org/knime/workbench/repository/nodalizer/NodeInfo.java
 			@SuppressWarnings("unchecked")
 			Node node = new Node((NodeFactory<NodeModel>) factory);
 			if (node.getCopyOfCreationConfig().isPresent()) {
@@ -627,6 +626,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 		return Collections.emptyList();
 	}
 
+	// TODO directly integrate this into above’s function
 	private static List<DynamicPortGroup> mergeDynamicPortInfo(List<DynamicPortGroup> docPorts,
 			List<DynamicPortGroup> implPorts, String nodeId) {
 		if (docPorts.size() != implPorts.size()) {
