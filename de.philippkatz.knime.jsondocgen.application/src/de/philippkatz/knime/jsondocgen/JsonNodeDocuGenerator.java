@@ -52,6 +52,7 @@ import java.io.FileOutputStream;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -94,7 +95,6 @@ import org.w3c.dom.Element;
 import de.philippkatz.knime.jsondocgen.docs.CategoryDoc;
 import de.philippkatz.knime.jsondocgen.docs.CategoryDoc.CategoryDocBuilder;
 import de.philippkatz.knime.jsondocgen.docs.NodeDoc.DynamicPortGroup;
-import de.philippkatz.knime.jsondocgen.docs.NodeDoc.DynamicPortType;
 import de.philippkatz.knime.jsondocgen.docs.NodeDoc.NodeDocBuilder;
 import de.philippkatz.knime.jsondocgen.docs.NodeDoc.Port;
 import de.philippkatz.knime.jsondocgen.docs.PortTypeDoc;
@@ -611,12 +611,9 @@ public class JsonNodeDocuGenerator implements IApplication {
 										|| groupConfig.definesOutputPorts() && portDirection == PortDirection.Out)) {
 							ConfigurablePortGroup configurablePortGroup = (ConfigurablePortGroup) groupConfig;
 							PortType[] supportedTypes = configurablePortGroup.getSupportedPortTypes();
-							List<DynamicPortType> dynamicPortTypes = new ArrayList<>();
-							for (PortType supportedType : supportedTypes) {
-								dynamicPortTypes.add(new DynamicPortType(supportedType.getPortObjectClass().getName()));
-							}
-							dynamicPortGroups
-									.add(new DynamicPortGroup(null, null, portGroupName, null, dynamicPortTypes));
+							dynamicPortGroups.add(
+									new DynamicPortGroup(null, null, portGroupName, null, Arrays.stream(supportedTypes)
+											.map(t -> t.getPortObjectClass().getName()).collect(Collectors.toList())));
 						}
 					}
 					return dynamicPortGroups;
@@ -641,7 +638,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 			if (optionalDocPort.isPresent()) {
 				DynamicPortGroup docPort = optionalDocPort.get();
 				merged.add(new DynamicPortGroup(docPort.insertBefore, docPort.name, docPort.groupIdentifier,
-						docPort.description, implPort.types));
+						docPort.description, implPort.portObjectClasses));
 			} else {
 				LOGGER.warn(String.format("%s, No port group with identifier %s in node docs", nodeId,
 						implPort.groupIdentifier));

@@ -178,22 +178,14 @@ public final class NodeDoc extends AbstractDoc {
 		public final String name;
 		public final String groupIdentifier;
 		public final String description;
-		public final List<DynamicPortType> types;
+		public final List<String> portObjectClasses;
 
-		public DynamicPortGroup(Integer insertBefore, String name, String groupIdentifier, String description, List<DynamicPortType> types) {
+		public DynamicPortGroup(Integer insertBefore, String name, String groupIdentifier, String description, List<String> portObjectClasses) {
 			this.insertBefore = insertBefore;
 			this.name = name;
 			this.groupIdentifier = groupIdentifier;
 			this.description = description;
-			this.types = types;
-		}
-	}
-	/** @since v1.12 */
-	// TODO wrapper class (currently?!) not needed
-	public static final class DynamicPortType {
-		public final String portObjectClass;
-		public DynamicPortType(String portObjectClass) {
-			this.portObjectClass = portObjectClass;
+			this.portObjectClasses = portObjectClasses;
 		}
 	}
 

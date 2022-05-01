@@ -64,7 +64,7 @@ public class JsonNodeDocuGeneratorTest_DynamicPorts {
 				PortDirection.In);
 		assertEquals(1, dynamicInPorts.size());
 		assertEquals("Optional data table", dynamicInPorts.get(0).groupIdentifier);
-		assertEquals("org.knime.core.node.BufferedDataTable", dynamicInPorts.get(0).types.get(0).portObjectClass);
+		assertEquals("org.knime.core.node.BufferedDataTable", dynamicInPorts.get(0).portObjectClasses.get(0));
 	}
 
 }
