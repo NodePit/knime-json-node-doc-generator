@@ -439,9 +439,9 @@ public class JsonNodeDocuGenerator implements IApplication {
 			builder.setHidden(hidden);
 			try {
 				NodeModel nodeModel = createNodeModel(factory);
-				PortType[] outPorts = getPorts(factory, false);
+				PortType[] outPorts = getPorts(factory, PortDirection.Out);
 				builder.setOutPorts(mergePortInfo(builder.build().outPorts, outPorts, current.getID()));
-				PortType[] inPorts = getPorts(factory, true);
+				PortType[] inPorts = getPorts(factory, PortDirection.In);
 				builder.setInPorts(mergePortInfo(builder.build().inPorts, inPorts, current.getID()));
 				builder.setStreamable(isStreamable(nodeModel));
 				// merge this “dynamic port” shit here
@@ -565,19 +565,19 @@ public class JsonNodeDocuGenerator implements IApplication {
 	 * 
 	 * @param nodeFactory
 	 *            The node factory.
-	 * @param inPort
-	 *            <code>true</code> for input port, <code>false</code> for output
-	 *            port.
+	 * @param portDirection
+	 *            Specify whether to get input or output port.
 	 * @return The port type information.
 	 */
-	/* package */ static PortType[] getPorts(NodeFactory<? extends NodeModel> factory, boolean inPort) {
+	/* package */ static PortType[] getPorts(NodeFactory<? extends NodeModel> factory, PortDirection portDirection) {
 		@SuppressWarnings("unchecked")
 		Node node = new Node((NodeFactory<NodeModel>) factory);
-		int nrPorts = inPort ? node.getNrInPorts() : node.getNrOutPorts();
+		int nrPorts = portDirection == PortDirection.In ? node.getNrInPorts() : node.getNrOutPorts();
 		PortType[] portTypes = new PortType[nrPorts - 1];
 		// start at 1, b/c of implicit flow variable port
 		for (int index = 1; index < nrPorts; index++) {
-			portTypes[index - 1] = inPort ? node.getInputType(index) : node.getOutputType(index);
+			portTypes[index - 1] = portDirection == PortDirection.In ? node.getInputType(index)
+					: node.getOutputType(index);
 		}
 		return portTypes;
 	}

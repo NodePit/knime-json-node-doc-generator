@@ -16,6 +16,8 @@ import org.knime.core.node.port.database.DatabasePortObject;
 import org.knime.core.node.port.viewproperty.ColorHandlerPortObject;
 import org.knime.core.node.port.viewproperty.ViewPropertyPortObject;
 
+import de.philippkatz.knime.jsondocgen.JsonNodeDocuGenerator.PortDirection;
+
 public class JsonNodeDocuGeneratorTest {
 
 	@Test
@@ -48,12 +50,12 @@ public class JsonNodeDocuGeneratorTest {
 			}
 		};
 
-		PortType[] inPorts = JsonNodeDocuGenerator.getPorts(stubNodeFactory, true);
+		PortType[] inPorts = JsonNodeDocuGenerator.getPorts(stubNodeFactory, PortDirection.In);
 		assertEquals(2, inPorts.length);
 		assertEquals(BufferedDataTable.TYPE, inPorts[0]);
 		assertEquals(DatabasePortObject.TYPE, inPorts[1]);
 
-		PortType[] outPorts = JsonNodeDocuGenerator.getPorts(stubNodeFactory, false);
+		PortType[] outPorts = JsonNodeDocuGenerator.getPorts(stubNodeFactory, PortDirection.Out);
 		assertEquals(1, outPorts.length);
 		assertEquals(BufferedDataTable.TYPE, outPorts[0]);
 	}
