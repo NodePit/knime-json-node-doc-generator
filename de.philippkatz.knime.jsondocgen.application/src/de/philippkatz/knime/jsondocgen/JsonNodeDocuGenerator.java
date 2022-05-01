@@ -591,7 +591,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 		return portTypes;
 	}
 	
-	private static List<DynamicPortGroup> getDynamicPorts(NodeFactory<? extends NodeModel> factory,
+	/* package */ static List<DynamicPortGroup> getDynamicPorts(NodeFactory<? extends NodeModel> factory,
 			PortDirection portDirection) {
 		if (factory instanceof ConfigurableNodeFactory) {
 			// TODO implement this; look at this mess:
@@ -695,7 +695,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 		}
 	}
 	
-	private static enum PortDirection {
+	/* package */ static enum PortDirection {
 		In, Out
 	}
 }

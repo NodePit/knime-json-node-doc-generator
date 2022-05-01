@@ -1,13 +1,20 @@
 package de.philippkatz.knime.jsondocgen;
 
+import static org.junit.Assert.assertEquals;
+
+import java.util.List;
 import java.util.Optional;
 
+import org.junit.Test;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ConfigurableNodeFactory;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
+
+import de.philippkatz.knime.jsondocgen.JsonNodeDocuGenerator.PortDirection;
+import de.philippkatz.knime.jsondocgen.docs.NodeDoc.DynamicPortGroup;
 
 public class JsonNodeDocuGeneratorTest_DynamicPorts {
 
@@ -50,7 +57,14 @@ public class JsonNodeDocuGeneratorTest_DynamicPorts {
 		}
 
 	}
-	
-	// TODO add asserts
+
+	@Test
+	public void test_getDynamicPorts() {
+		List<DynamicPortGroup> dynamicInPorts = JsonNodeDocuGenerator.getDynamicPorts(new DynamicPortsStubNodeFactory(),
+				PortDirection.In);
+		assertEquals(1, dynamicInPorts.size());
+		assertEquals("Optional data table", dynamicInPorts.get(0).groupIdentifier);
+		assertEquals("org.knime.core.node.BufferedDataTable", dynamicInPorts.get(0).types.get(0).portObjectClass);
+	}
 
 }
