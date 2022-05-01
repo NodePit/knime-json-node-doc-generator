@@ -444,13 +444,8 @@ public class JsonNodeDocuGenerator implements IApplication {
 				// TODO merge this “dynamic port” shit here
 				// https://github.com/knime/knime-workbench/blob/9b42402105c8f8ebb3a74ae8fa869522d263bf68/org.knime.workbench.repository/src/eclipse/org/knime/workbench/repository/nodalizer/NodeInfo.java
 				// https://github.com/knime/knime-workbench/blob/master/org.knime.workbench.repository/src/eclipse/org/knime/workbench/repository/nodalizer/Nodalizer.java#L646
-				@SuppressWarnings("unchecked")
-				Node node = new Node((NodeFactory<NodeModel>) factory);
-				if (factory instanceof ConfigurableNodeFactory && node.getCopyOfCreationConfig().isPresent()
-						&& node.getCopyOfCreationConfig().get().getPortConfig().isPresent()) {
-					builder.setDynamicInPorts(getDynamicPorts(factory, PortDirection.In));
-					builder.setDynamicOutPorts(getDynamicPorts(factory, PortDirection.Out));
-				}
+				builder.setDynamicInPorts(getDynamicPorts(factory, PortDirection.In));
+				builder.setDynamicOutPorts(getDynamicPorts(factory, PortDirection.Out));
 			} catch (Throwable t) {
 				LOGGER.warn(String.format("Could not create NodeModel for %s", factory.getClass().getName()), t);
 			}
