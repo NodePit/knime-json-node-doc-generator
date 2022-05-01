@@ -432,9 +432,6 @@ public class JsonNodeDocuGenerator implements IApplication {
 			boolean deprecated = RepositoryManager.INSTANCE.isDeprecated(current.getID());
 			boolean hidden = RepositoryManager.INSTANCE.isHidden(current.getID());
 			builder.setHidden(hidden);
-			// port type information -- extract this information separately and do not merge
-			// with the node description's port information, because the documentation and
-			// the actual implementation might be inconsistent.
 			try {
 				NodeModel nodeModel = createNodeModel(factory);
 				PortType[] outPorts = getPorts(nodeModel, false);
