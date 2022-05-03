@@ -538,7 +538,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 	 */
 	private static List<Port> mergePortInfo(List<Port> ports, PortType[] portTypes, String nodeId) {
 		List<Port> result = new ArrayList<>();
-		int numDocPorts = ports.size();
+		int numDocPorts = Optional.ofNullable(ports).map(List::size).orElse(0);
 		int numImplPorts = portTypes.length;
 		if (numDocPorts != numImplPorts) {
 			LOGGER.warn(String.format("%s: Documentation does not match implementation: %s vs. %s ports", nodeId,
@@ -548,7 +548,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 			PortType portType = portTypes[index];
 			String name = null;
 			String description = null;
-			if (ports.size() > index) {
+			if (numDocPorts > index) {
 				Port portInfo = ports.get(index);
 				name = portInfo.name;
 				description = portInfo.description;
