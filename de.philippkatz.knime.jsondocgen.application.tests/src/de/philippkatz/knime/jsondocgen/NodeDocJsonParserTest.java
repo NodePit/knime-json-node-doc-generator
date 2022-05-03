@@ -144,6 +144,24 @@ public class NodeDocJsonParserTest {
 		assertEquals("KNIME E-Learning Course: Classic Aggregations with GroupBy node", nodeDoc.links.get(0).text);
 	}
 
+	@Test
+	public void parsing_XML_with_dynamic_ports() throws Exception {
+		Document doc = readDoc("/ExcelTableWriterNodeFactory.xml");
+		NodeDoc nodeDoc = NodeDocJsonParser.parse(doc);
+
+		assertEquals(2, nodeDoc.dynamicInPorts.size());
+
+		assertEquals((Integer) 0, nodeDoc.dynamicInPorts.get(0).insertBefore);
+		assertEquals("File system connection", nodeDoc.dynamicInPorts.get(0).name);
+		assertEquals("File System Connection", nodeDoc.dynamicInPorts.get(0).groupIdentifier);
+		assertEquals("The file system connection.", nodeDoc.dynamicInPorts.get(0).description);
+
+		assertEquals((Integer) 1, nodeDoc.dynamicInPorts.get(1).insertBefore);
+		assertEquals("Additional input tables", nodeDoc.dynamicInPorts.get(1).name);
+		assertEquals("Sheet Input Ports", nodeDoc.dynamicInPorts.get(1).groupIdentifier);
+		assertEquals("Additional data table to write.", nodeDoc.dynamicInPorts.get(1).description);
+	}
+
 	private static Document readDoc(String resourcePath) throws Exception {
 		Objects.requireNonNull(resourcePath, "resourcePath must not be null");
 		try (InputStream resourceStream = NodeDocJsonParserTest.class.getResourceAsStream(resourcePath)) {

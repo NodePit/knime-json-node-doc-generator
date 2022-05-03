@@ -15,6 +15,7 @@ import java.util.Objects;
 import org.w3c.dom.Node;
 
 import de.philippkatz.knime.jsondocgen.docs.NodeDoc;
+import de.philippkatz.knime.jsondocgen.docs.NodeDoc.DynamicPortGroup;
 import de.philippkatz.knime.jsondocgen.docs.NodeDoc.InteractiveView;
 import de.philippkatz.knime.jsondocgen.docs.NodeDoc.Link;
 import de.philippkatz.knime.jsondocgen.docs.NodeDoc.NodeDocBuilder;
@@ -90,6 +91,10 @@ public final class NodeDocJsonParser {
 		builder.setOutPorts(
 				parsePorts(getNodes(nodeNoNS, "/knimeNode/ports/*[name()='outPort' or name()='dataOut']"), false));
 
+		// dynamic in and out ports
+		builder.setDynamicInPorts(parseDynamicPorts(getNodes(nodeNoNS, "/knimeNode/ports/dynInPort")));
+		builder.setDynamicOutPorts(parseDynamicPorts(getNodes(nodeNoNS, "/knimeNode/ports/dynOutPort")));
+
 		// views
 		List<Node> views = getNodes(nodeNoNS, "/knimeNode/views/view");
 		for (Node view : views) {
@@ -143,6 +148,18 @@ public final class NodeDocJsonParser {
 			portsJson.add(new Port(index, /* not known at this point. */ null, name, description, optional));
 		}
 		return portsJson;
+	}
+
+	private static List<DynamicPortGroup> parseDynamicPorts(List<Node> ports) {
+		List<DynamicPortGroup> portsDocs = new ArrayList<>();
+		for (Node port : ports) {
+			int insertBefore = Integer.valueOf(getAttribute(port, "insert-before"));
+			String name = getAttribute(port, "name");
+			String groupIdentifier = getAttribute(port, "group-identifier");
+			String description = trim(getInnerXml(port));
+			portsDocs.add(new DynamicPortGroup(insertBefore, name, groupIdentifier, description, /* not know at this point */ null));
+		}
+		return portsDocs;
 	}
 
 }

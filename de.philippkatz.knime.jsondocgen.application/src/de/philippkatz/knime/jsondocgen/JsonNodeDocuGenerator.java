@@ -52,11 +52,14 @@ import java.io.FileOutputStream;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -69,10 +72,14 @@ import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
 import org.eclipse.swt.widgets.Display;
 import org.knime.core.node.ConfigurableNodeFactory;
+import org.knime.core.node.Node;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.context.ModifiableNodeCreationConfiguration;
 import org.knime.core.node.context.NodeCreationConfiguration;
+import org.knime.core.node.context.ports.ConfigurablePortGroup;
+import org.knime.core.node.context.ports.ModifiablePortsConfiguration;
+import org.knime.core.node.context.ports.PortGroupConfiguration;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
@@ -87,6 +94,7 @@ import org.w3c.dom.Element;
 
 import de.philippkatz.knime.jsondocgen.docs.CategoryDoc;
 import de.philippkatz.knime.jsondocgen.docs.CategoryDoc.CategoryDocBuilder;
+import de.philippkatz.knime.jsondocgen.docs.NodeDoc.DynamicPortGroup;
 import de.philippkatz.knime.jsondocgen.docs.NodeDoc.NodeDocBuilder;
 import de.philippkatz.knime.jsondocgen.docs.NodeDoc.Port;
 import de.philippkatz.knime.jsondocgen.docs.PortTypeDoc;
@@ -429,16 +437,18 @@ public class JsonNodeDocuGenerator implements IApplication {
 			boolean deprecated = RepositoryManager.INSTANCE.isDeprecated(current.getID());
 			boolean hidden = RepositoryManager.INSTANCE.isHidden(current.getID());
 			builder.setHidden(hidden);
-			// port type information -- extract this information separately and do not merge
-			// with the node description's port information, because the documentation and
-			// the actual implementation might be inconsistent.
 			try {
 				NodeModel nodeModel = createNodeModel(factory);
-				PortType[] outPorts = getPorts(nodeModel, false);
+				PortType[] outPorts = getPorts(factory, PortDirection.Out);
 				builder.setOutPorts(mergePortInfo(builder.build().outPorts, outPorts, current.getID()));
-				PortType[] inPorts = getPorts(nodeModel, true);
+				PortType[] inPorts = getPorts(factory, PortDirection.In);
 				builder.setInPorts(mergePortInfo(builder.build().inPorts, inPorts, current.getID()));
 				builder.setStreamable(isStreamable(nodeModel));
+				// merge this “dynamic port” shit here
+				List<DynamicPortGroup> dynamicInPorts = getDynamicPorts(factory, PortDirection.In);
+				List<DynamicPortGroup> dynamicOutPorts = getDynamicPorts(factory, PortDirection.Out);
+				builder.setDynamicInPorts(mergeDynamicPortInfo(builder.build().dynamicInPorts, dynamicInPorts, current.getID()));
+				builder.setDynamicOutPorts(mergeDynamicPortInfo(builder.build().dynamicOutPorts, dynamicOutPorts, current.getID()));
 			} catch (Throwable t) {
 				LOGGER.warn(String.format("Could not create NodeModel for %s", factory.getClass().getName()), t);
 			}
@@ -553,31 +563,80 @@ public class JsonNodeDocuGenerator implements IApplication {
 	 * Get runtime port type information via reflection (this information cannot be
 	 * accessed via public API).
 	 * 
-	 * @param nodeModel
-	 *            The node model instance.
-	 * @param inPort
-	 *            <code>true</code> for input port, <code>false</code> for output
-	 *            port.
+	 * @param nodeFactory
+	 *            The node factory.
+	 * @param portDirection
+	 *            Specify whether to get input or output port.
 	 * @return The port type information.
-	 * @throws Exception
-	 *             In case anything goes wrong.
 	 */
-	/* package */ static PortType[] getPorts(NodeModel nodeModel, boolean inPort) throws Exception {
-
-		Method getPortType = NodeModel.class.getDeclaredMethod(inPort ? "getInPortType" : "getOutPortType", int.class);
-		getPortType.setAccessible(true);
-
-		Method getNrPorts = NodeModel.class.getDeclaredMethod(inPort ? "getNrInPorts" : "getNrOutPorts");
-		getNrPorts.setAccessible(true);
-		int nrPorts = (int) getNrPorts.invoke(nodeModel);
-
-		PortType[] portTypes = new PortType[nrPorts];
-
-		for (int index = 0; index < nrPorts; index++) {
-			portTypes[index] = (PortType) getPortType.invoke(nodeModel, index);
+	/* package */ static PortType[] getPorts(NodeFactory<? extends NodeModel> factory, PortDirection portDirection) {
+		@SuppressWarnings("unchecked")
+		Node node = new Node((NodeFactory<NodeModel>) factory);
+		int nrPorts = portDirection == PortDirection.In ? node.getNrInPorts() : node.getNrOutPorts();
+		PortType[] portTypes = new PortType[nrPorts - 1];
+		// start at 1, b/c of implicit flow variable port
+		for (int index = 1; index < nrPorts; index++) {
+			portTypes[index - 1] = portDirection == PortDirection.In ? node.getInputType(index)
+					: node.getOutputType(index);
 		}
-
 		return portTypes;
+	}
+	
+	/* package */ static List<DynamicPortGroup> getDynamicPorts(NodeFactory<? extends NodeModel> factory,
+			PortDirection portDirection) {
+		if (factory instanceof ConfigurableNodeFactory) {
+			// TODO implement this; look at this mess:
+			// https://github.com/knime/knime-workbench/commit/508b59c8f475277df5c095567c8f441eda6808cd
+			// https://github.com/knime/knime-workbench/blob/master/org.knime.workbench.repository/src/eclipse/org/knime/workbench/repository/nodalizer/Nodalizer.java#L646
+			@SuppressWarnings("unchecked")
+			Node node = new Node((NodeFactory<NodeModel>) factory);
+			if (node.getCopyOfCreationConfig().isPresent()) {
+				ModifiableNodeCreationConfiguration nodeCreationConfig = node.getCopyOfCreationConfig().get();
+				if (nodeCreationConfig.getPortConfig().isPresent()) {
+					ModifiablePortsConfiguration portsConfig = nodeCreationConfig.getPortConfig().get();
+					List<DynamicPortGroup> dynamicPortGroups = new ArrayList<>();
+					for (String portGroupName : portsConfig.getPortGroupNames()) {
+						PortGroupConfiguration groupConfig = portsConfig.getGroup(portGroupName);
+						if (groupConfig instanceof ConfigurablePortGroup
+								&& (groupConfig.definesInputPorts() && portDirection == PortDirection.In
+										|| groupConfig.definesOutputPorts() && portDirection == PortDirection.Out)) {
+							ConfigurablePortGroup configurablePortGroup = (ConfigurablePortGroup) groupConfig;
+							PortType[] supportedTypes = configurablePortGroup.getSupportedPortTypes();
+							dynamicPortGroups.add(
+									new DynamicPortGroup(null, null, portGroupName, null, Arrays.stream(supportedTypes)
+											.map(t -> t.getPortObjectClass().getName()).collect(Collectors.toList())));
+						}
+					}
+					return dynamicPortGroups;
+				}
+			}
+		}
+		return Collections.emptyList();
+	}
+
+	// TODO directly integrate this into above’s function
+	private static List<DynamicPortGroup> mergeDynamicPortInfo(List<DynamicPortGroup> docPorts,
+			List<DynamicPortGroup> implPorts, String nodeId) {
+		if (docPorts.size() != implPorts.size()) {
+			LOGGER.warn(String.format("%s: Documentation does not match implementation: %s vs. %s ports", nodeId,
+					docPorts.size(), implPorts.size()));
+		}
+		List<DynamicPortGroup> merged = new ArrayList<>();
+		for (DynamicPortGroup implPort : implPorts) {
+			// find the port group in the docs, and merge them
+			Optional<DynamicPortGroup> optionalDocPort = docPorts.stream()
+					.filter(p -> p.groupIdentifier.equals(implPort.groupIdentifier)).findFirst();
+			if (optionalDocPort.isPresent()) {
+				DynamicPortGroup docPort = optionalDocPort.get();
+				merged.add(new DynamicPortGroup(docPort.insertBefore, docPort.name, docPort.groupIdentifier,
+						docPort.description, implPort.portObjectClasses));
+			} else {
+				LOGGER.warn(String.format("%s, No port group with identifier %s in node docs", nodeId,
+						implPort.groupIdentifier));
+				merged.add(implPort);
+			}
+		}
+		return merged;
 	}
 
 	/**
@@ -622,5 +681,9 @@ public class JsonNodeDocuGenerator implements IApplication {
 		} else {
 			return "";
 		}
+	}
+	
+	/* package */ static enum PortDirection {
+		In, Out
 	}
 }

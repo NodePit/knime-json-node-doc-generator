@@ -7,23 +7,55 @@ import java.util.List;
 import org.junit.Test;
 import org.knime.core.data.filestore.FileStorePortObject;
 import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.NodeDialogPane;
+import org.knime.core.node.NodeFactory;
+import org.knime.core.node.NodeView;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.database.DatabasePortObject;
 import org.knime.core.node.port.viewproperty.ColorHandlerPortObject;
 import org.knime.core.node.port.viewproperty.ViewPropertyPortObject;
 
+import de.philippkatz.knime.jsondocgen.JsonNodeDocuGenerator.PortDirection;
+
 public class JsonNodeDocuGeneratorTest {
 
 	@Test
 	public void testGetPortTypes() throws Exception {
-		StubNodeModel stubNodeModel = new StubNodeModel();
-		PortType[] inPorts = JsonNodeDocuGenerator.getPorts(stubNodeModel, true);
+
+		NodeFactory<StubNodeModel> stubNodeFactory = new NodeFactory<StubNodeModel>() {
+			@Override
+			public StubNodeModel createNodeModel() {
+				return new StubNodeModel();
+			}
+
+			@Override
+			protected int getNrNodeViews() {
+				return 0;
+			}
+
+			@Override
+			public NodeView<StubNodeModel> createNodeView(int viewIndex, StubNodeModel nodeModel) {
+				return null;
+			}
+
+			@Override
+			protected boolean hasDialog() {
+				return false;
+			}
+
+			@Override
+			protected NodeDialogPane createNodeDialogPane() {
+				return null;
+			}
+		};
+
+		PortType[] inPorts = JsonNodeDocuGenerator.getPorts(stubNodeFactory, PortDirection.In);
 		assertEquals(2, inPorts.length);
 		assertEquals(BufferedDataTable.TYPE, inPorts[0]);
 		assertEquals(DatabasePortObject.TYPE, inPorts[1]);
 
-		PortType[] outPorts = JsonNodeDocuGenerator.getPorts(stubNodeModel, false);
+		PortType[] outPorts = JsonNodeDocuGenerator.getPorts(stubNodeFactory, PortDirection.Out);
 		assertEquals(1, outPorts.length);
 		assertEquals(BufferedDataTable.TYPE, outPorts[0]);
 	}

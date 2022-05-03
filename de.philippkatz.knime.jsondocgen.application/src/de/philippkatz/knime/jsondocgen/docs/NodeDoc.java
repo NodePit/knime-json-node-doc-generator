@@ -23,6 +23,10 @@ public final class NodeDoc extends AbstractDoc {
 		private InteractiveView interactiveView;
 		private boolean streamable;
 		private List<Link> links;
+		/** @since 1.11 -- added with KNIME 4.2 */
+		private List<DynamicPortGroup> dynamicInPorts;
+		/** @since 1.11 -- added with KNIME 4.2 */
+		private List<DynamicPortGroup> dynamicOutPorts;
 		public NodeDocBuilder setIntro(String intro) {
 			this.intro = intro;
 			return this;
@@ -90,6 +94,14 @@ public final class NodeDoc extends AbstractDoc {
 		}
 		public NodeDoc build() {
 			return new NodeDoc(this);
+		}
+		public NodeDocBuilder setDynamicInPorts(List<DynamicPortGroup> dynamicInPorts) {
+			this.dynamicInPorts = dynamicInPorts;
+			return this;
+		}
+		public NodeDocBuilder setDynamicOutPorts(List<DynamicPortGroup> dynamicOutPorts) {
+			this.dynamicOutPorts = dynamicOutPorts;
+			return this;
 		}
 	}
 	
@@ -160,6 +172,22 @@ public final class NodeDoc extends AbstractDoc {
 			this.text = text;
 		}
 	}
+	/** @since v1.12 */
+	public static final class DynamicPortGroup {
+		public final Integer insertBefore;
+		public final String name;
+		public final String groupIdentifier;
+		public final String description;
+		public final List<String> portObjectClasses;
+
+		public DynamicPortGroup(Integer insertBefore, String name, String groupIdentifier, String description, List<String> portObjectClasses) {
+			this.insertBefore = insertBefore;
+			this.name = name;
+			this.groupIdentifier = groupIdentifier;
+			this.description = description;
+			this.portObjectClasses = portObjectClasses;
+		}
+	}
 
 	public final String intro;
 	public final List<OptionTab> optionTabs;
@@ -178,6 +206,10 @@ public final class NodeDoc extends AbstractDoc {
 	public final boolean streamable;
 	/** Added in v1.11 */
 	public final List<Link> links;
+	/** @since v1.12 -- added with KNIME 4.2 */
+	public final List<DynamicPortGroup> dynamicInPorts;
+	/** @since v1.12 -- added with KNIME 4.2 */
+	public final List<DynamicPortGroup> dynamicOutPorts;
 
 	private NodeDoc(NodeDocBuilder builder) {
 		super(builder);
@@ -195,6 +227,8 @@ public final class NodeDoc extends AbstractDoc {
 		interactiveView = builder.interactiveView;
 		streamable = builder.streamable;
 		links = builder.links;
+		dynamicInPorts = copyOrNull(builder.dynamicInPorts);
+		dynamicOutPorts = copyOrNull(builder.dynamicOutPorts);
 	}
 
 	private static List<String> convert(List<Port> ports) {
