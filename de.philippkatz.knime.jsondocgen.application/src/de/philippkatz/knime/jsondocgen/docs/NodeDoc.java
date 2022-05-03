@@ -23,9 +23,9 @@ public final class NodeDoc extends AbstractDoc {
 		private InteractiveView interactiveView;
 		private boolean streamable;
 		private List<Link> links;
-		/** @since 1.11 -- added with KNIME 4.2 */
+		/** @since 1.12 -- added with KNIME 4.2 */
 		private List<DynamicPortGroup> dynamicInPorts;
-		/** @since 1.11 -- added with KNIME 4.2 */
+		/** @since 1.12 -- added with KNIME 4.2 */
 		private List<DynamicPortGroup> dynamicOutPorts;
 		public NodeDocBuilder setIntro(String intro) {
 			this.intro = intro;
