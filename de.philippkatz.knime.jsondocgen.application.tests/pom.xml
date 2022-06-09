@@ -4,7 +4,7 @@
 
   <modelVersion>4.0.0</modelVersion>
   <artifactId>de.philippkatz.knime.jsondocgen.application.tests</artifactId>
-  <version>1.12.1-SNAPSHOT</version>
+  <version>1.12.2-SNAPSHOT</version>
   <packaging>eclipse-test-plugin</packaging>
 
   <parent>
