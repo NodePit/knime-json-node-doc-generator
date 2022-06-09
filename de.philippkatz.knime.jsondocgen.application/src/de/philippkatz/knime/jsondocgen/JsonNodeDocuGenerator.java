@@ -85,6 +85,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.PortTypeRegistry;
 import org.knime.core.node.streamable.PartitionInfo;
+import org.knime.workbench.repository.RepositoryManager;
 import org.knime.workbench.repository.model.Category;
 import org.knime.workbench.repository.model.IContainerObject;
 import org.knime.workbench.repository.model.IRepositoryObject;
@@ -122,8 +123,6 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 	private static final String INCLUDE_DEPRECATED_ARG = "-includeDeprecated";
 
-	private static final String INCLUDE_HIDDEN_ARG = "-includeHidden";
-
 	private static final String SKIP_NODE_DOCUMENTATION = "-skipNodeDocumentation";
 
 	private static final String SKIP_PORT_DOCUMENTATION = "-skipPortDocumentation";
@@ -144,8 +143,6 @@ public class JsonNodeDocuGenerator implements IApplication {
 				+ " category-path (e.g. /community) : Only nodes within the specified category path will be considered. If not specified '/' is used.");
 		System.err.println(
 				"\t" + INCLUDE_DEPRECATED_ARG + " : Include nodes marked as 'deprecated' in the extension point.");
-		System.err.println("\t" + INCLUDE_HIDDEN_ARG
-				+ " : Include nodes marked as 'hidden' in the extension point (new since KNIME 4.2).");
 		System.err.println("\t" + SKIP_NODE_DOCUMENTATION + " : Skip generating node documentation");
 		System.err.println("\t" + SKIP_PORT_DOCUMENTATION + " : Skip generating port documentation");
 		System.err.println("\t" + SKIP_SPLASH_ICONS + " : Skip extracting splash screen icons");
@@ -160,8 +157,6 @@ public class JsonNodeDocuGenerator implements IApplication {
 	private String m_catPath = "/";
 
 	private boolean m_includeDeprecated = false;
-
-	private boolean m_includeHidden = false;
 
 	private boolean m_skipNodeDocumentation = false;
 
@@ -186,8 +181,6 @@ public class JsonNodeDocuGenerator implements IApplication {
 					m_pluginIds.add(args[i + 1]);
 				} else if (args[i].equals(INCLUDE_DEPRECATED_ARG)) {
 					m_includeDeprecated = true;
-				} else if (args[i].equals(INCLUDE_HIDDEN_ARG)) {
-					m_includeHidden = true;
 				} else if (args[i].equals(SKIP_NODE_DOCUMENTATION)) {
 					m_skipNodeDocumentation = true;
 				} else if (args[i].equals(SKIP_PORT_DOCUMENTATION)) {
@@ -242,7 +235,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 			LOGGER.info("Reading node repository");
 
-			IRepositoryObject root = RepositoryManager.INSTANCE.getRoot();
+			IRepositoryObject root = RepositoryManager.INSTANCE.getCompleteRoot();
 			rootCategoryDoc = new CategoryDocBuilder();
 			rootCategoryDoc.setId(root.getID());
 			rootCategoryDoc.setName(root.getName());
@@ -434,9 +427,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 				builder.setIconBase64(Utils.getImageBase64(nodeTemplate.getIcon()));
 			}
 			builder.setAfterId(Utils.stringOrNull(nodeTemplate.getAfterID()));
-			boolean deprecated = RepositoryManager.INSTANCE.isDeprecated(current.getID());
-			boolean hidden = RepositoryManager.INSTANCE.isHidden(current.getID());
-			builder.setHidden(hidden);
+			boolean deprecated = nodeTemplate.isDeprecated();
 			try {
 				NodeModel nodeModel = createNodeModel(factory);
 				PortType[] outPorts = getPorts(factory, PortDirection.Out);
@@ -458,7 +449,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 				// so, do not overwrite with false, if already set to true
 				builder.setDeprecated(true);
 			}
-			if ((!deprecated || m_includeDeprecated) && (!hidden || m_includeHidden)) {
+			if ((!deprecated || m_includeDeprecated)) {
 				parentCategory.addNode(builder.build());
 			}
 

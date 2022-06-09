@@ -201,6 +201,7 @@ public final class NodeDoc extends AbstractDoc {
 	public final List<View> views;
 	public final String type;
 	public final boolean deprecated;
+	/** @deprecated We no longer set this. */
 	public final boolean hidden;
 	public final InteractiveView interactiveView;
 	public final boolean streamable;
