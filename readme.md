@@ -52,7 +52,6 @@ Allowed options are:
 	-plugin plugin-id : Only nodes of the specified plugin will be considered (specify multiple plugins by repeating this option). If not all available plugins will be processed.
 	-category category-path (e.g. /community) : Only nodes within the specified category path will be considered. If not specified '/' is used.
 	-includeDeprecated : Include nodes marked as 'deprecated' in the extension point.
-	-includeHidden : Include nodes marked as 'hidden' in the extension point (new since KNIME 4.2).
 	-skipNodeDocumentation : Skip generating node documentation
 	-skipPortDocumentation : Skip generating port documentation
 	-skipSplashIcons : Skip extracting splash screen icons
