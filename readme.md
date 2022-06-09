@@ -23,6 +23,7 @@ https://download.nodepit.com/jsondocgen/4.1
 https://download.nodepit.com/jsondocgen/4.2
 https://download.nodepit.com/jsondocgen/4.3
 https://download.nodepit.com/jsondocgen/4.4
+https://download.nodepit.com/jsondocgen/4.5
 ```
 
 Beside that, the `master` branch is available through the following software site:
@@ -52,7 +53,6 @@ Allowed options are:
 	-plugin plugin-id : Only nodes of the specified plugin will be considered (specify multiple plugins by repeating this option). If not all available plugins will be processed.
 	-category category-path (e.g. /community) : Only nodes within the specified category path will be considered. If not specified '/' is used.
 	-includeDeprecated : Include nodes marked as 'deprecated' in the extension point.
-	-includeHidden : Include nodes marked as 'hidden' in the extension point (new since KNIME 4.2).
 	-skipNodeDocumentation : Skip generating node documentation
 	-skipPortDocumentation : Skip generating port documentation
 	-skipSplashIcons : Skip extracting splash screen icons
@@ -257,7 +257,7 @@ License
 
 - - -
 
-Copyright (c) 2017 – 2021 Philipp Katz
+Copyright (c) 2017 – 2022 Philipp Katz
 
 [1]: https://seleniumnodes.com
 [2]: https://github.com/NodePit/knime-json-node-doc-generator/issues
