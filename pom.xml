@@ -3,16 +3,10 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>de.philippkatz.knime.jsondocgen.root</artifactId>
+  <groupId>de.philippkatz.knime.jsondocgen</groupId>
+  <artifactId>de.philippkatz.knime.jsondocgen</artifactId>
   <version>1.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
-
-  <parent>
-    <groupId>de.philippkatz.knime.jsondocgen</groupId>
-    <artifactId>de.philippkatz.knime.jsondocgen.parent</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
-    <relativePath>de.philippkatz.knime.jsondocgen.parent</relativePath>
-  </parent>
 
   <modules>
     <module>de.philippkatz.knime.jsondocgen.targetplatform</module>
@@ -21,5 +15,71 @@
     <module>de.philippkatz.knime.jsondocgen.feature</module>
     <module>de.philippkatz.knime.jsondocgen.update</module>
   </modules>
+
+  <properties>
+    <tycho-version>1.7.0</tycho-version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.eclipse.tycho</groupId>
+        <artifactId>tycho-maven-plugin</artifactId>
+        <version>${tycho-version}</version>
+        <extensions>true</extensions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.eclipse.tycho</groupId>
+        <artifactId>target-platform-configuration</artifactId>
+        <version>${tycho-version}</version>
+        <configuration>
+          <target>
+            <artifact>
+              <groupId>de.philippkatz.knime.jsondocgen</groupId>
+              <artifactId>de.philippkatz.knime.jsondocgen.targetplatform</artifactId>
+              <version>1.0.0-SNAPSHOT</version>
+            </artifact>
+          </target>
+          <environments>
+            <environment>
+              <os>linux</os>
+              <ws>gtk</ws>
+              <arch>x86_64</arch>
+            </environment>
+            <environment>
+              <os>win32</os>
+              <ws>win32</ws>
+              <arch>x86_64</arch>
+            </environment>
+            <environment>
+              <os>macosx</os>
+              <ws>cocoa</ws>
+              <arch>x86_64</arch>
+            </environment>
+          </environments>
+          <dependency-resolution>
+            <extraRequirements>
+              <requirement>
+                <type>eclipse-feature</type>
+                <id>org.knime.features.core</id>
+                <versionRange>0.0.0</versionRange>
+              </requirement>
+            </extraRequirements>
+          </dependency-resolution>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.eclipse.tycho</groupId>
+        <artifactId>tycho-compiler-plugin</artifactId>
+        <version>${tycho-version}</version>
+        <configuration>
+          <useProjectSettings>false</useProjectSettings>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>
