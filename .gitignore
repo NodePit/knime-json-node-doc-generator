@@ -4,3 +4,6 @@ target/
 .project
 .settings/
 lib/
+nodeDocumentation.json
+portDocumentation.json
+splashIcons.json
