@@ -9,9 +9,8 @@
 
   <parent>
     <groupId>de.philippkatz.knime.jsondocgen</groupId>
-    <artifactId>de.philippkatz.knime.jsondocgen.parent</artifactId>
+    <artifactId>de.philippkatz.knime.jsondocgen</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <relativePath>../de.philippkatz.knime.jsondocgen.parent</relativePath>
   </parent>
 
 </project>
