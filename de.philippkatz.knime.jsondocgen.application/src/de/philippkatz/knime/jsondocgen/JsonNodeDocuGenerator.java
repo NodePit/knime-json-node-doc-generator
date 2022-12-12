@@ -72,6 +72,7 @@ import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
 import org.eclipse.swt.widgets.Display;
 import org.knime.core.node.ConfigurableNodeFactory;
+import org.knime.core.node.DynamicNodeFactory;
 import org.knime.core.node.Node;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeModel;
@@ -395,11 +396,6 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 		if (current instanceof NodeTemplate) {
 
-			// skip node if not part of the specified plugin
-			if (!m_pluginIds.isEmpty() && !m_pluginIds.contains(current.getContributingPlugin())) {
-				return false;
-			}
-
 			// skip if not in a sub-category of the category specified
 			// as argument
 			if (m_catPath.length() > 0) {
@@ -412,6 +408,12 @@ public class JsonNodeDocuGenerator implements IApplication {
 			NodeTemplate nodeTemplate = (NodeTemplate) current;
 			NodeFactory<? extends NodeModel> factory = nodeTemplate.createFactoryInstance();
 
+			// skip node if not part of the specified plugin
+			String contributingPlugin = getBundleName(factory).orElse(current.getContributingPlugin());
+			if (!m_pluginIds.isEmpty() && !m_pluginIds.contains(contributingPlugin)) {
+				return false;
+			}
+
 			NodeDocBuilder builder = new NodeDocBuilder();
 			builder.setId(current.getID());
 			builder.setName(current.getName());
@@ -422,7 +424,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 				NodeDocJsonParser.parse(xmlDescription, builder);
 			}
 			
-			builder.setContributingPlugin(current.getContributingPlugin());
+			builder.setContributingPlugin(contributingPlugin);
 			if (nodeTemplate.getIcon() != null) {
 				builder.setIconBase64(Utils.getImageBase64(nodeTemplate.getIcon()));
 			}
@@ -650,6 +652,23 @@ public class JsonNodeDocuGenerator implements IApplication {
 			LOGGER.error(String.format("No createStreamableOperator method in %s", nodeModel.getClass().getName()), e);
 		}
 		return false;
+	}
+
+	@SuppressWarnings("unchecked")
+	private static Optional<String> getBundleName(NodeFactory<?> nodeFactory) {
+		if (!(nodeFactory instanceof DynamicNodeFactory)) {
+			return Optional.empty();
+		}
+		try {
+			// this is needed e.g. for nodes which are based on
+			// org.knime.python3.nodes.extension.ExtensionNodeSetFactory.DynamicExtensionNodeFactory
+			Method method = nodeFactory.getClass().getDeclaredMethod("getBundleName");
+			method.setAccessible(true);
+			return (Optional<String>) method.invoke(nodeFactory);
+		} catch (ReflectiveOperationException | IllegalArgumentException e) {
+			LOGGER.error(String.format("Could not call getBundleName for %s", nodeFactory.getClass().getName()), e);
+			return Optional.empty();
+		}
 	}
 
 	/*
