@@ -27,6 +27,8 @@ public final class NodeDoc extends AbstractDoc {
 		private List<DynamicPortGroup> dynamicInPorts;
 		/** @since 1.12 -- added with KNIME 4.2 */
 		private List<DynamicPortGroup> dynamicOutPorts;
+		/** @since v1.13 -- added for Python-based nodes. */
+		private String bundleName;
 		public NodeDocBuilder setIntro(String intro) {
 			this.intro = intro;
 			return this;
@@ -101,6 +103,10 @@ public final class NodeDoc extends AbstractDoc {
 		}
 		public NodeDocBuilder setDynamicOutPorts(List<DynamicPortGroup> dynamicOutPorts) {
 			this.dynamicOutPorts = dynamicOutPorts;
+			return this;
+		}
+		public NodeDocBuilder setBundleName(String bundleName) {
+			this.bundleName = bundleName;
 			return this;
 		}
 	}
@@ -211,6 +217,8 @@ public final class NodeDoc extends AbstractDoc {
 	public final List<DynamicPortGroup> dynamicInPorts;
 	/** @since v1.12 -- added with KNIME 4.2 */
 	public final List<DynamicPortGroup> dynamicOutPorts;
+	/** @since v1.13 -- added for Python-based nodes. */
+	public final String bundleName;
 
 	private NodeDoc(NodeDocBuilder builder) {
 		super(builder);
@@ -230,6 +238,7 @@ public final class NodeDoc extends AbstractDoc {
 		links = builder.links;
 		dynamicInPorts = copyOrNull(builder.dynamicInPorts);
 		dynamicOutPorts = copyOrNull(builder.dynamicOutPorts);
+		bundleName = builder.bundleName;
 	}
 
 	private static List<String> convert(List<Port> ports) {

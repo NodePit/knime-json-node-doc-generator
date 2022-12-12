@@ -72,6 +72,7 @@ import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
 import org.eclipse.swt.widgets.Display;
 import org.knime.core.node.ConfigurableNodeFactory;
+import org.knime.core.node.DynamicNodeFactory;
 import org.knime.core.node.Node;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeModel;
@@ -396,9 +397,9 @@ public class JsonNodeDocuGenerator implements IApplication {
 		if (current instanceof NodeTemplate) {
 
 			// skip node if not part of the specified plugin
-			if (!m_pluginIds.isEmpty() && !m_pluginIds.contains(current.getContributingPlugin())) {
-				return false;
-			}
+//			if (!m_pluginIds.isEmpty() && !m_pluginIds.contains(current.getContributingPlugin())) {
+//				return false;
+//			}
 
 			// skip if not in a sub-category of the category specified
 			// as argument
@@ -412,9 +413,17 @@ public class JsonNodeDocuGenerator implements IApplication {
 			NodeTemplate nodeTemplate = (NodeTemplate) current;
 			NodeFactory<? extends NodeModel> factory = nodeTemplate.createFactoryInstance();
 
+			// call the getBundleName
+			Optional<String> bundleName = getBundleName(factory);
+			// skip node if not part of the specified plugin
+			if (bundleName.isPresent() && !m_pluginIds.isEmpty() && !m_pluginIds.contains(bundleName.get())) {
+				return false;
+			}
+
 			NodeDocBuilder builder = new NodeDocBuilder();
 			builder.setId(current.getID());
 			builder.setName(current.getName());
+			builder.setBundleName(bundleName.orElse(null));
 			
 			// get additional information from the node XML description
 			Element xmlDescription = factory.getXMLDescription();
@@ -650,6 +659,21 @@ public class JsonNodeDocuGenerator implements IApplication {
 			LOGGER.error(String.format("No createStreamableOperator method in %s", nodeModel.getClass().getName()), e);
 		}
 		return false;
+	}
+
+	@SuppressWarnings("unchecked")
+	private static Optional<String> getBundleName(NodeFactory<?> nodeFactory) {
+		if (!(nodeFactory instanceof DynamicNodeFactory)) {
+			return Optional.empty();
+		}
+		try {
+			Method method = nodeFactory.getClass().getDeclaredMethod("getBundleName");
+			method.setAccessible(true);
+			return (Optional<String>) method.invoke(nodeFactory);
+		} catch (ReflectiveOperationException | IllegalArgumentException e) {
+			LOGGER.error(String.format("Could not call getBundleName for %s", nodeFactory.getClass().getName()), e);
+			return Optional.empty();
+		}
 	}
 
 	/*
