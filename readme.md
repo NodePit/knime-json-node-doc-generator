@@ -172,7 +172,7 @@ The generated `nodeDocumentation.json` JSON file’s structure looks as follows:
 
 The generated `portDocumentation.json` JSON file’s structure looks as follows:
 
-```
+```json
 {
   "name": "PortObject",
   "objectClass": "org.knime.core.node.port.PortObject",
@@ -213,7 +213,7 @@ The generated `portDocumentation.json` JSON file’s structure looks as follows:
 
 The generated `splashIcons.json` JSON file’s structure looks as follows:
 
-```
+```json
 [
   {
     "id": "selenium",
