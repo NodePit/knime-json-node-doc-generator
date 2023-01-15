@@ -25,6 +25,7 @@ https://download.nodepit.com/jsondocgen/4.3
 https://download.nodepit.com/jsondocgen/4.4
 https://download.nodepit.com/jsondocgen/4.5
 https://download.nodepit.com/jsondocgen/4.6
+https://download.nodepit.com/jsondocgen/4.7
 ```
 
 Beside that, the `master` branch is available through the following software site:
@@ -171,7 +172,7 @@ The generated `nodeDocumentation.json` JSON file’s structure looks as follows:
 
 The generated `portDocumentation.json` JSON file’s structure looks as follows:
 
-```
+```json
 {
   "name": "PortObject",
   "objectClass": "org.knime.core.node.port.PortObject",
@@ -212,7 +213,7 @@ The generated `portDocumentation.json` JSON file’s structure looks as follows:
 
 The generated `splashIcons.json` JSON file’s structure looks as follows:
 
-```
+```json
 [
   {
     "id": "selenium",
