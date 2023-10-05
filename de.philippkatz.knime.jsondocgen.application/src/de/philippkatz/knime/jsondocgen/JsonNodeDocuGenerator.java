@@ -270,7 +270,14 @@ public class JsonNodeDocuGenerator implements IApplication {
 			// once from the registry and cache it, b/c the registry creates new PortTypes
 			// dynamically when requesting an unknown type
 			Map<Class<? extends PortObject>, PortType> portTypes = PortTypeRegistry.getInstance().availablePortTypes()
-					.stream().collect(Collectors.toMap(PortType::getPortObjectClass, Function.identity()));
+					.stream().collect(Collectors.toMap(
+						PortType::getPortObjectClass, 
+						Function.identity(),
+						(portType1, portType2) -> {
+							LOGGER.debug(String.format("Encountered duplicate key: %s vs. %s", portType1, portType2));
+							return portType1;
+						}
+					));
 
 			LOGGER.debug(String.format("Found %s ports to process", portTypes.size()));
 
