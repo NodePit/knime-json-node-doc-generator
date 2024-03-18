@@ -26,6 +26,9 @@ https://download.nodepit.com/jsondocgen/4.4
 https://download.nodepit.com/jsondocgen/4.5
 https://download.nodepit.com/jsondocgen/4.6
 https://download.nodepit.com/jsondocgen/4.7
+https://download.nodepit.com/jsondocgen/5.0
+https://download.nodepit.com/jsondocgen/5.1
+https://download.nodepit.com/jsondocgen/5.2
 ```
 
 Beside that, the `master` branch is available through the following software site:
@@ -259,7 +262,7 @@ License
 
 - - -
 
-Copyright (c) 2017 – 2022 Philipp Katz
+Copyright (c) 2017 – 2024 Philipp Katz
 
 [1]: https://seleniumnodes.com
 [2]: https://github.com/NodePit/knime-json-node-doc-generator/issues
