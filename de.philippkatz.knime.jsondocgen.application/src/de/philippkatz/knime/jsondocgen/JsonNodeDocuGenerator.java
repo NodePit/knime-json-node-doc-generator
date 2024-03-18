@@ -656,7 +656,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 			}
 		} catch (NoSuchMethodException e) {
 			// this should never happen, as the method is implemented by the NodeModel class
-			LOGGER.error(String.format("No createStreamableOperator method in %s", nodeModel.getClass().getName()), e);
+			LOGGER.warn(String.format("No createStreamableOperator method in %s", nodeModel.getClass().getName()));
 		}
 		return false;
 	}
@@ -673,7 +673,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 			method.setAccessible(true);
 			return (Optional<String>) method.invoke(nodeFactory);
 		} catch (ReflectiveOperationException | IllegalArgumentException e) {
-			LOGGER.error(String.format("Could not call getBundleName for %s", nodeFactory.getClass().getName()), e);
+			LOGGER.warn(String.format("Could not call getBundleName for %s: %s", nodeFactory.getClass().getName(), e.getMessage()));
 			return Optional.empty();
 		}
 	}
