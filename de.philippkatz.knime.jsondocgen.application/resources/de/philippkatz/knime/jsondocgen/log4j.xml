@@ -8,8 +8,10 @@
       <param name="ConversionPattern" value="%d{HH:mm:ss.SSS} [%t] %-5p %c{1}:%L - %m%n" />
     </layout>
   </appender>
+  <appender name="logfile" class="org.apache.log4j.varia.NullAppender" />
   <root>
     <level value="DEBUG" />
     <appender-ref ref="console" />
+    <appender-ref ref="logfile" />
   </root>
 </log4j:configuration>
