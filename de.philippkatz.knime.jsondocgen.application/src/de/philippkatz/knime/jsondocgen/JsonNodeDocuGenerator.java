@@ -137,7 +137,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 		System.err.println("Usage: NodeDocuGenerator options");
 		System.err.println("Allowed options are:");
 		System.err.println("\t" + DESTINATION_ARG
-				+ " dir : directory where the result should be written to (directory must exist)");
+				+ " dir : directory where the result should be written to (should be absolute, otherwise the files will be placed relative to the knime executable)");
 		System.err.println("\t" + PLUGIN_ARG
 				+ " plugin-id : Only nodes of the specified plugin will be considered (specify multiple plugins by repeating this option). If not all available plugins will be processed.");
 		System.err.println("\t" + CATEGORY_ARG
