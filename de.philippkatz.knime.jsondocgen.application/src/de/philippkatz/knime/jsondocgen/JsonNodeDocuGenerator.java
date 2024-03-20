@@ -50,6 +50,7 @@ package de.philippkatz.knime.jsondocgen;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -68,11 +69,13 @@ import javax.xml.transform.TransformerException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
+import org.apache.log4j.xml.DOMConfigurator;
 import org.eclipse.equinox.app.IApplication;
 import org.eclipse.equinox.app.IApplicationContext;
 import org.eclipse.swt.widgets.Display;
 import org.knime.core.node.ConfigurableNodeFactory;
 import org.knime.core.node.DynamicNodeFactory;
+import org.knime.core.node.KNIMEConstants;
 import org.knime.core.node.Node;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeModel;
@@ -137,7 +140,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 		System.err.println("Usage: NodeDocuGenerator options");
 		System.err.println("Allowed options are:");
 		System.err.println("\t" + DESTINATION_ARG
-				+ " dir : directory where the result should be written to (directory must exist)");
+				+ " dir : Directory where the result should be written to (should be absolute, otherwise the files will be placed relative to the knime executable)");
 		System.err.println("\t" + PLUGIN_ARG
 				+ " plugin-id : Only nodes of the specified plugin will be considered (specify multiple plugins by repeating this option). If not all available plugins will be processed.");
 		System.err.println("\t" + CATEGORY_ARG
@@ -169,6 +172,12 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 	@Override
 	public Object start(final IApplicationContext context) throws Exception {
+		String log4Jconfiguration = System.getProperty("log4j.configuration");
+		if (log4Jconfiguration == null) {
+			System.setProperty(KNIMEConstants.PROPERTY_DISABLE_LOG4J_CONFIG, "true");
+			URL log4Jxml = JsonNodeDocuGenerator.class.getResource("log4j.xml");
+			DOMConfigurator.configure(log4Jxml);
+		}
 		Object o = context.getArguments().get(IApplicationContext.APPLICATION_ARGS);
 		Display.getDefault();
 		if (o != null && o instanceof String[]) {
@@ -279,7 +288,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 						}
 					));
 
-			LOGGER.debug(String.format("Found %s ports to process", portTypes.size()));
+			LOGGER.info(String.format("Found %s ports to process", portTypes.size()));
 
 			processPorts(portTypes.keySet(), portTypes, builders);
 
@@ -294,10 +303,10 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 		if (!m_skipSplashIcons) {
 
-			LOGGER.debug("Generating splash icons");
+			LOGGER.info("Generating splash icons");
 
 			List<SplashIconDoc> splashIcons = SplashIconReader.readSplashIcons();
-			LOGGER.debug(String.format("Found %s splash icons", splashIcons.size()));
+			LOGGER.info(String.format("Found %s splash icons", splashIcons.size()));
 
 			File splashIconsResultFile = new File(m_directory, "splashIcons.json");
 			LOGGER.info("Writing splash icons to " + splashIconsResultFile);
