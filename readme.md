@@ -54,7 +54,7 @@ Execute it without options to see the following instructions:
 $ ./Knime -nosplash -application de.philippkatz.knime.jsondocgen.application.JsonNodeDocumentationGenerator
 Usage: NodeDocuGenerator options
 Allowed options are:
-	-destination dir : directory where the result should be written to (directory must exist)
+	-destination dir : Directory where the result should be written to (should be absolute, otherwise the files will be placed relative to the knime executable)
 	-plugin plugin-id : Only nodes of the specified plugin will be considered (specify multiple plugins by repeating this option). If not all available plugins will be processed.
 	-category category-path (e.g. /community) : Only nodes within the specified category path will be considered. If not specified '/' is used.
 	-includeDeprecated : Include nodes marked as 'deprecated' in the extension point.
@@ -78,6 +78,12 @@ When running within a headless environment (CI, Docker, …) with Xvfb, it’s
 highly advisable to add the option `--launcher.suppressErrors`. Otherwise,
 execution errors will lead to a seemingly hanging application, as the shown
 error dialog remains “invisible”.
+
+You might need to add some further configuration options, especially `-vmargs`
+to make it work with *any* kind of node extension. In our [NodePit](https://nodepit.com)
+crawler production environment for example, we additionally supply the
+`--add-opens` arguments, which you can copy from a current `knime.ini` file
+and a customized Log4J configuration. (see also [here](https://github.com/NodePit/knime-json-node-doc-generator/issues/38))
 
 The generated `nodeDocumentation.json` JSON file’s structure looks as follows:
 
