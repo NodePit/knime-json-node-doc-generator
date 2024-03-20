@@ -245,15 +245,8 @@ successful, build an update site:
 $ mvn clean verify
 ```
 
-To increment the version, update the `MANIFEST.MF` and/or `feature.xml` and
-run the following command to automatically update the project’s `pom.xml`
-files:
-
-```
-$ mvn org.eclipse.tycho:tycho-versions-plugin:update-pom
-```
-
-Make sure to follow [Semantic Versioning][6].
+To increment the version, make suer to update the `pom.xml`, `MANIFEST.MF`,
+and `feature.xml` files. Make sure to follow [Semantic Versioning][6].
 
 Contributing
 ------------
