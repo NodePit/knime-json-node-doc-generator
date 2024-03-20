@@ -288,7 +288,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 						}
 					));
 
-			LOGGER.debug(String.format("Found %s ports to process", portTypes.size()));
+			LOGGER.info(String.format("Found %s ports to process", portTypes.size()));
 
 			processPorts(portTypes.keySet(), portTypes, builders);
 
@@ -303,10 +303,10 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 		if (!m_skipSplashIcons) {
 
-			LOGGER.debug("Generating splash icons");
+			LOGGER.info("Generating splash icons");
 
 			List<SplashIconDoc> splashIcons = SplashIconReader.readSplashIcons();
-			LOGGER.debug(String.format("Found %s splash icons", splashIcons.size()));
+			LOGGER.info(String.format("Found %s splash icons", splashIcons.size()));
 
 			File splashIconsResultFile = new File(m_directory, "splashIcons.json");
 			LOGGER.info("Writing splash icons to " + splashIconsResultFile);
