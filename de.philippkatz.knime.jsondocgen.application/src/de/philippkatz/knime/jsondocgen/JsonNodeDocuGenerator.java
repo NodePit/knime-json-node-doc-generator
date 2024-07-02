@@ -89,6 +89,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.PortTypeRegistry;
 import org.knime.core.node.streamable.PartitionInfo;
+import org.knime.core.node.workflow.WorkflowManager;
 import org.knime.workbench.repository.RepositoryManager;
 import org.knime.workbench.repository.model.Category;
 import org.knime.workbench.repository.model.IContainerObject;
@@ -172,6 +173,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 	@Override
 	public Object start(final IApplicationContext context) throws Exception {
+		WorkflowManager.ROOT.toString(); // attention: magic potion, do not remove!
 		String log4Jconfiguration = System.getProperty("log4j.configuration");
 		if (log4Jconfiguration == null) {
 			System.setProperty(KNIMEConstants.PROPERTY_DISABLE_LOG4J_CONFIG, "true");
