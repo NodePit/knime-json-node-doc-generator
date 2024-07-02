@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: JSON node documentation generator tests
-Bundle-SymbolicName: de.philippkatz.knime.jsondocgen.application.tests;singleton:=true
+Bundle-SymbolicName: de.philippkatz.knime.jsondocgen.tests;singleton:=true
 Bundle-Version: 1.13.5.qualifier
 Bundle-Vendor: Philipp Katz; Selenium Nodes
 Bundle-RequiredExecutionEnvironment: JavaSE-17

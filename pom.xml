@@ -9,11 +9,11 @@
   <packaging>pom</packaging>
 
   <modules>
-    <module>de.philippkatz.knime.jsondocgen.targetplatform</module>
-    <module>de.philippkatz.knime.jsondocgen.application</module>
-    <module>de.philippkatz.knime.jsondocgen.application.tests</module>
-    <module>de.philippkatz.knime.jsondocgen.feature</module>
-    <module>de.philippkatz.knime.jsondocgen.update</module>
+    <module>targetplatform</module>
+    <module>application</module>
+    <module>tests</module>
+    <module>feature</module>
+    <module>p2</module>
   </modules>
 
   <properties>
