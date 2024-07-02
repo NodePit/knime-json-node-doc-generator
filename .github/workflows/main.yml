@@ -27,16 +27,10 @@ jobs:
         # https://stackoverflow.com/questions/58139406/only-run-job-on-specific-branch-with-github-actions
         if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/release/')
         run: |
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
-          echo -e "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
           branch=${GITHUB_REF#refs/heads/}
           label=${branch#release/}
-          dest_directory=/home/debian/nodepit/download/files/jsondocgen/$label
-          ssh $USER_HOST "mkdir -p $dest_directory"
-          scp -rp de.philippkatz.knime.jsondocgen.update/target/repository/* $USER_HOST:$dest_directory
+          curl -s https://download.nodepit.com/developers/upload-update-site.sh |\
+            bash -s -- $SFTP_USER $SFTP_PASSWORD $label
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          USER_HOST: debian@nodepit.com
+          SFTP_USER: jsondocgen
+          SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
