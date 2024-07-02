@@ -10,7 +10,7 @@
   <parent>
     <groupId>de.philippkatz.knime.jsondocgen</groupId>
     <artifactId>de.philippkatz.knime.jsondocgen</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.13.5-SNAPSHOT</version>
   </parent>
 
   <build>
