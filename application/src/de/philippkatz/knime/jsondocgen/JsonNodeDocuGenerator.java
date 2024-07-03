@@ -116,6 +116,7 @@ import de.philippkatz.knime.jsondocgen.docs.SplashIconDoc;
  * @author Martin Horn, University of Konstanz
  * @author Philipp Katz, seleniumnodes.com
  */
+@SuppressWarnings("deprecation")
 public class JsonNodeDocuGenerator implements IApplication {
 
 	private static final Logger LOGGER = Logger.getLogger(JsonNodeDocuGenerator.class);
@@ -182,8 +183,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 		}
 		Object o = context.getArguments().get(IApplicationContext.APPLICATION_ARGS);
 		Display.getDefault();
-		if (o != null && o instanceof String[]) {
-			String[] args = (String[]) o;
+		if (o != null && o instanceof String[] args) {
 			for (int i = 0; i < args.length; i++) {
 				if (args[i].equals(DESTINATION_ARG)) {
 					m_directory = new File(args[i + 1]);
@@ -412,7 +412,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 	private boolean generate(final File directory, final IRepositoryObject current, final IRepositoryObject parent,
 			CategoryDocBuilder parentCategory) throws TransformerException, Exception {
 
-		if (current instanceof NodeTemplate) {
+		if (current instanceof NodeTemplate nodeTemplate) {
 
 			// skip if not in a sub-category of the category specified
 			// as argument
@@ -423,7 +423,6 @@ public class JsonNodeDocuGenerator implements IApplication {
 				}
 			}
 
-			NodeTemplate nodeTemplate = (NodeTemplate) current;
 			NodeFactory<? extends NodeModel> factory = nodeTemplate.createFactoryInstance();
 
 			// skip node if not part of the specified plugin
@@ -480,8 +479,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 			CategoryDocBuilder newCategory = parentCategory;
 
-			if (current instanceof Category) {
-				Category category = (Category) current;
+			if (current instanceof Category category) {
 				CategoryDocBuilder builder = new CategoryDocBuilder();
 				builder.setId(category.getID());
 				builder.setName(category.getName());
@@ -523,8 +521,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 	 * @throws Exception
 	 */
 	/* package */ static NodeModel createNodeModel(NodeFactory<? extends NodeModel> factory) throws Exception {
-		if (factory instanceof ConfigurableNodeFactory) {
-			ConfigurableNodeFactory<?> configurableFactory = (ConfigurableNodeFactory<?>) factory;
+		if (factory instanceof ConfigurableNodeFactory configurableFactory) {
 			ModifiableNodeCreationConfiguration config = configurableFactory.createNodeCreationConfig();
 			// org.knime.core.node.NodeFactory.createNodeModel(NodeCreationConfiguration)
 			Method method = NodeFactory.class.getDeclaredMethod("createNodeModel", NodeCreationConfiguration.class);
@@ -608,10 +605,9 @@ public class JsonNodeDocuGenerator implements IApplication {
 					List<DynamicPortGroup> dynamicPortGroups = new ArrayList<>();
 					for (String portGroupName : portsConfig.getPortGroupNames()) {
 						PortGroupConfiguration groupConfig = portsConfig.getGroup(portGroupName);
-						if (groupConfig instanceof ConfigurablePortGroup
+						if (groupConfig instanceof ConfigurablePortGroup configurablePortGroup
 								&& (groupConfig.definesInputPorts() && portDirection == PortDirection.In
 										|| groupConfig.definesOutputPorts() && portDirection == PortDirection.Out)) {
-							ConfigurablePortGroup configurablePortGroup = (ConfigurablePortGroup) groupConfig;
 							PortType[] supportedTypes = configurablePortGroup.getSupportedPortTypes();
 							dynamicPortGroups.add(
 									new DynamicPortGroup(null, null, portGroupName, null, Arrays.stream(supportedTypes)
@@ -672,7 +668,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 		return false;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked" })
 	private static Optional<String> getBundleName(NodeFactory<?> nodeFactory) {
 		if (!(nodeFactory instanceof DynamicNodeFactory)) {
 			return Optional.empty();
