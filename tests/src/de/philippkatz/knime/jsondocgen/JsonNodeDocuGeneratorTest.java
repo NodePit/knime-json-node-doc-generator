@@ -18,6 +18,7 @@ import org.knime.core.node.port.viewproperty.ViewPropertyPortObject;
 
 import de.philippkatz.knime.jsondocgen.JsonNodeDocuGenerator.PortDirection;
 
+@SuppressWarnings("deprecation")
 public class JsonNodeDocuGeneratorTest {
 
 	@Test
