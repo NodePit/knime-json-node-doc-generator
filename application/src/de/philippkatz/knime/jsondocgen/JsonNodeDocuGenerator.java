@@ -135,6 +135,8 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 	private static final String SKIP_SPLASH_ICONS = "-skipSplashIcons";
 
+	private static final String SKIP_MIGRATION_RULES = "-skipMigrationRules";
+
 	/** Return code in case an error occurs during execution. */
 	private static final Integer EXIT_EXECUTION_ERROR = Integer.valueOf(1);
 
@@ -170,6 +172,8 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 	private boolean m_skipSplashIcons = false;
 
+	private boolean m_skipMigrationRules = false;
+
 	private CategoryDocBuilder rootCategoryDoc;
 
 	@Override
@@ -199,6 +203,8 @@ public class JsonNodeDocuGenerator implements IApplication {
 					m_skipPortDocumentation = true;
 				} else if (args[i].equals(SKIP_SPLASH_ICONS)) {
 					m_skipSplashIcons = true;
+				} else if (args[i].equals(SKIP_MIGRATION_RULES)) {
+					m_skipMigrationRules = true;
 				} else if (args[i].equals("-help")) {
 					printUsage();
 					return EXIT_OK;
@@ -313,6 +319,14 @@ public class JsonNodeDocuGenerator implements IApplication {
 			File splashIconsResultFile = new File(m_directory, "splashIcons.json");
 			LOGGER.info("Writing splash icons to " + splashIconsResultFile);
 			IOUtils.write(Utils.toJson(splashIcons), new FileOutputStream(splashIconsResultFile),
+					StandardCharsets.UTF_8);
+		}
+
+		if (!m_skipMigrationRules) {
+			var migrationRuleDocs = MigrationRuleExtractor.extractMigrationRules();
+			var migrationsResultFile = new File(m_directory, "migrations.json");
+			LOGGER.info("Writing migrations to " + migrationsResultFile);
+			IOUtils.write(Utils.toJson(migrationRuleDocs), new FileOutputStream(migrationsResultFile),
 					StandardCharsets.UTF_8);
 		}
 	}
