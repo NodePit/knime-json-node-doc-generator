@@ -568,8 +568,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 	}
 
 	/**
-	 * Get runtime port type information via reflection (this information cannot be
-	 * accessed via public API).
+	 * Get runtime port type information.
 	 * 
 	 * @param nodeFactory
 	 *            The node factory.
