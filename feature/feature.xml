@@ -2,7 +2,7 @@
 <feature
    id="de.philippkatz.knime.jsondocgen.feature"
    label="NodePit JSON Documentation Generator"
-   version="1.13.5.qualifier"
+   version="1.14.0.qualifier"
    provider-name="seleniumnodes.com; Philipp Katz">
 
    <plugin
