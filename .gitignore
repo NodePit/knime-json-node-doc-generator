@@ -6,4 +6,6 @@ target/
 nodeDocumentation.json
 portDocumentation.json
 splashIcons.json
+migrations.json
 .tycho-consumer-pom.xml
+lib-download/

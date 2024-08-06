@@ -13,4 +13,27 @@
     <version>1.14.1-SNAPSHOT</version>
   </parent>
 
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>de.philippkatz.maven.plugins</groupId>
+        <artifactId>dependency-resolver-plugin</artifactId>
+        <version>2.0.0</version>
+        <configuration>
+          <dependencies>
+            <dependency>org.mockito:mockito-core:2.28.2</dependency>
+          </dependencies>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>initialize</phase>
+            <goals>
+              <goal>resolve-dependencies</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
 </project>
