@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
    id="de.philippkatz.knime.jsondocgen.feature"
-   label="JSON node documentation generator"
-   version="1.13.5.qualifier"
+   label="NodePit JSON Documentation Generator"
+   version="1.14.0.qualifier"
    provider-name="seleniumnodes.com; Philipp Katz">
 
    <plugin

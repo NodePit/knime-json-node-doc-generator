@@ -4,11 +4,11 @@
       Update Site for JSON node documentation generator
    </description>
    <feature id="de.philippkatz.knime.jsondocgen.feature">
-      <category name="jsondocgen"/>
+      <category name="nodepit"/>
    </feature>
-   <category-def name="jsondocgen" label="jsondocgen">
+   <category-def name="nodepit" label="NodePit">
       <description>
-         This category contains the JSON node documentation generator
+         Category for NodePit
       </description>
    </category-def>
 </site>

@@ -13,6 +13,7 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.database.DatabasePortObject;
 
+@SuppressWarnings("deprecation")
 final class StubNodeModel extends NodeModel {
 
 	protected StubNodeModel() {
