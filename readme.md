@@ -246,7 +246,7 @@ successful, build an update site:
 $ mvn clean verify
 ```
 
-To increment the version, make suer to update the `pom.xml`, `MANIFEST.MF`,
+To increment the version, make sure to update the `pom.xml`, `MANIFEST.MF`,
 and `feature.xml` files. Make sure to follow [Semantic Versioning][6].
 
 Contributing
