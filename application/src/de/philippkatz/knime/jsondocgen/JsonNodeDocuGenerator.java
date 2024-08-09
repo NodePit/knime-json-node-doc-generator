@@ -48,10 +48,9 @@
 package de.philippkatz.knime.jsondocgen;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -67,7 +66,6 @@ import java.util.stream.Collectors;
 
 import javax.xml.transform.TransformerException;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
 import org.eclipse.equinox.app.IApplication;
@@ -275,7 +273,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 			String resultJson = rootCategory.toJson();
 			File resultFile = new File(m_directory, "nodeDocumentation.json");
 			LOGGER.info("Writing nodes to " + resultFile);
-			IOUtils.write(resultJson, new FileOutputStream(resultFile), StandardCharsets.UTF_8);
+			Files.writeString(resultFile.toPath(), resultJson);
 
 		}
 
@@ -307,7 +305,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 			File portTypeResultFile = new File(m_directory, "portDocumentation.json");
 			LOGGER.info("Writing port types to " + portTypeResultFile);
-			IOUtils.write(Utils.toJson(rootElement), new FileOutputStream(portTypeResultFile), StandardCharsets.UTF_8);
+			Files.writeString(portTypeResultFile.toPath(), Utils.toJson(rootElement));
 
 		}
 
@@ -320,16 +318,14 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 			File splashIconsResultFile = new File(m_directory, "splashIcons.json");
 			LOGGER.info("Writing splash icons to " + splashIconsResultFile);
-			IOUtils.write(Utils.toJson(splashIcons), new FileOutputStream(splashIconsResultFile),
-					StandardCharsets.UTF_8);
+			Files.writeString(splashIconsResultFile.toPath(), Utils.toJson(splashIcons));
 		}
 
 		if (!m_skipMigrationRules) {
 			var migrationRuleDocs = MigrationRuleExtractor.extractMigrationRules();
 			var migrationsResultFile = new File(m_directory, "migrations.json");
 			LOGGER.info("Writing migrations to " + migrationsResultFile);
-			IOUtils.write(Utils.toJson(migrationRuleDocs), new FileOutputStream(migrationsResultFile),
-					StandardCharsets.UTF_8);
+			Files.writeString(migrationsResultFile.toPath(), Utils.toJson(migrationRuleDocs));
 		}
 	}
 
