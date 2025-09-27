@@ -9,7 +9,7 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
 
-      - uses: s4u/setup-maven-action@v1.14.0
+      - uses: s4u/setup-maven-action@v1.18.0
         with:
           java-version: '17'
           java-distribution: temurin
