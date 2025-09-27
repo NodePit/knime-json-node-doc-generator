@@ -27,6 +27,10 @@ public final class NodeDoc extends AbstractDoc {
 		private List<DynamicPortGroup> dynamicInPorts;
 		/** @since 1.12 -- added with KNIME 4.2 */
 		private List<DynamicPortGroup> dynamicOutPorts;
+		/** @since v1.15 */
+		private boolean hasModernDialog;
+		/** @since v1.15 */
+		private boolean hasKaiInterface;
 		public NodeDocBuilder setIntro(String intro) {
 			this.intro = intro;
 			return this;
@@ -101,6 +105,16 @@ public final class NodeDoc extends AbstractDoc {
 		}
 		public NodeDocBuilder setDynamicOutPorts(List<DynamicPortGroup> dynamicOutPorts) {
 			this.dynamicOutPorts = dynamicOutPorts;
+			return this;
+		}
+		/** @since v1.15 */
+		public NodeDocBuilder setHasModernDialog(boolean hasModernDialog) {
+			this.hasModernDialog = hasModernDialog;
+			return this;
+		}
+		/** @since v1.15 */
+		public NodeDocBuilder setHasKaiInterface(boolean hasKaiInterface) {
+			this.hasKaiInterface = hasKaiInterface;
 			return this;
 		}
 	}
@@ -211,6 +225,10 @@ public final class NodeDoc extends AbstractDoc {
 	public final List<DynamicPortGroup> dynamicInPorts;
 	/** @since v1.12 -- added with KNIME 4.2 */
 	public final List<DynamicPortGroup> dynamicOutPorts;
+	/** @since v1.15 */
+	public final boolean hasModernDialog;
+	/** @since v1.15 */
+	public final boolean hasKaiInterface;
 
 	private NodeDoc(NodeDocBuilder builder) {
 		super(builder);
@@ -230,6 +248,8 @@ public final class NodeDoc extends AbstractDoc {
 		links = builder.links;
 		dynamicInPorts = copyOrNull(builder.dynamicInPorts);
 		dynamicOutPorts = copyOrNull(builder.dynamicOutPorts);
+		hasModernDialog = builder.hasModernDialog;
+		hasKaiInterface = builder.hasKaiInterface;
 	}
 
 	private static List<String> convert(List<Port> ports) {

@@ -88,6 +88,8 @@ import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.PortTypeRegistry;
 import org.knime.core.node.streamable.PartitionInfo;
 import org.knime.core.util.IEarlyStartup;
+import org.knime.core.webui.node.dialog.NodeDialogFactory;
+import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 import org.knime.workbench.repository.RepositoryManager;
 import org.knime.workbench.repository.model.Category;
 import org.knime.workbench.repository.model.IContainerObject;
@@ -421,6 +423,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 	 * @return true, if the element was added to the documentation, false if it has
 	 *         been skipped
 	 */
+	@SuppressWarnings("restriction")
 	private boolean generate(final File directory, final IRepositoryObject current, final IRepositoryObject parent,
 			CategoryDocBuilder parentCategory) throws TransformerException, Exception {
 
@@ -474,6 +477,10 @@ public class JsonNodeDocuGenerator implements IApplication {
 			} catch (Throwable t) {
 				LOGGER.warn(String.format("Could not create NodeModel for %s", factory.getClass().getName()), t);
 			}
+
+			builder.setHasModernDialog(hasModernDialog(factory));
+			// since KNIME 5.5 (?)
+			builder.setHasKaiInterface(factory instanceof KaiNodeInterfaceFactory);
 
 			if (deprecated) {
 				// there are two locations, where nodes can be set to deprecated:
@@ -717,8 +724,14 @@ public class JsonNodeDocuGenerator implements IApplication {
 			return "";
 		}
 	}
-	
+
 	/* package */ static enum PortDirection {
 		In, Out
+	}
+
+	@SuppressWarnings("restriction")
+	static boolean hasModernDialog(NodeFactory<?> nodeFactory) {
+		// supported since KNIME 4.5
+		return nodeFactory instanceof NodeDialogFactory nodeDialogFactory && nodeDialogFactory.hasNodeDialog();
 	}
 }
