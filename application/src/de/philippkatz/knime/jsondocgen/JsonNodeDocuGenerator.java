@@ -423,7 +423,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 	 * @return true, if the element was added to the documentation, false if it has
 	 *         been skipped
 	 */
-	@SuppressWarnings("restriction")
+	@SuppressWarnings({ "restriction", "unchecked" })
 	private boolean generate(final File directory, final IRepositoryObject current, final IRepositoryObject parent,
 			CategoryDocBuilder parentCategory) throws TransformerException, Exception {
 
@@ -477,6 +477,11 @@ public class JsonNodeDocuGenerator implements IApplication {
 			} catch (Throwable t) {
 				LOGGER.warn(String.format("Could not create NodeModel for %s", factory.getClass().getName()), t);
 			}
+			
+			Node node = new Node((NodeFactory<NodeModel>) factory);
+			var nodeDescription = node.invokeGetNodeDescription();
+			builder.setKeywords(Arrays.asList(nodeDescription.getKeywords()));
+			builder.setSinceVersion(nodeDescription.getSinceVersion().map(v -> v.toString()).orElse(null));
 
 			builder.setHasModernDialog(hasModernDialog(factory));
 			// since KNIME 5.5 (?)

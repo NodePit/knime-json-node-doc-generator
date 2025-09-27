@@ -31,6 +31,10 @@ public final class NodeDoc extends AbstractDoc {
 		private boolean hasModernDialog;
 		/** @since v1.15 */
 		private boolean hasKaiInterface;
+		/** @since v1.15 */
+		private List<String> keywords;
+		/** @since v1.15 */
+		private String sinceVersion;
 		public NodeDocBuilder setIntro(String intro) {
 			this.intro = intro;
 			return this;
@@ -117,8 +121,16 @@ public final class NodeDoc extends AbstractDoc {
 			this.hasKaiInterface = hasKaiInterface;
 			return this;
 		}
+		public NodeDocBuilder setKeywords(List<String> keywords) {
+			this.keywords = keywords;
+			return this;
+		}
+		public NodeDocBuilder setSinceVersion(String sinceVersion) {
+			this.sinceVersion = sinceVersion;
+			return this;
+		}
 	}
-	
+
 	public static final class OptionTab {
 		public final String name;
 		public final String description; 
@@ -229,6 +241,10 @@ public final class NodeDoc extends AbstractDoc {
 	public final boolean hasModernDialog;
 	/** @since v1.15 */
 	public final boolean hasKaiInterface;
+	/** @since v1.15 */
+	public final List<String> keywords;
+	/** @since v1.15 */
+	public final String sinceVersion;
 
 	private NodeDoc(NodeDocBuilder builder) {
 		super(builder);
@@ -250,6 +266,8 @@ public final class NodeDoc extends AbstractDoc {
 		dynamicOutPorts = copyOrNull(builder.dynamicOutPorts);
 		hasModernDialog = builder.hasModernDialog;
 		hasKaiInterface = builder.hasKaiInterface;
+		keywords = copyOrNull(builder.keywords);
+		sinceVersion = builder.sinceVersion;
 	}
 
 	private static List<String> convert(List<Port> ports) {
