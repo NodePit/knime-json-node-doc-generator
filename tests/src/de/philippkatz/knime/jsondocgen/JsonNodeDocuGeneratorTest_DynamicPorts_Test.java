@@ -16,7 +16,7 @@ import org.knime.core.node.context.NodeCreationConfiguration;
 import de.philippkatz.knime.jsondocgen.JsonNodeDocuGenerator.PortDirection;
 import de.philippkatz.knime.jsondocgen.docs.NodeDoc.DynamicPortGroup;
 
-public class JsonNodeDocuGeneratorTest_DynamicPorts {
+public class JsonNodeDocuGeneratorTest_DynamicPorts_Test {
 
 	// https://github.com/knime/knime-core/blob/master/org.knime.core/src/eclipse/org/knime/core/node/NodeDescription41Proxy.java
 	// https://github.com/knime/knime-excel/blob/master/org.knime.ext.poi2/src/org/knime/ext/poi2/node/write3/XLSWriter2NodeFactory.java
