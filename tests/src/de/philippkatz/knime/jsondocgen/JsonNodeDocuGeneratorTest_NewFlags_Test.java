@@ -20,43 +20,36 @@ public class JsonNodeDocuGeneratorTest_NewFlags_Test {
 
 		@Override
 		public NodeModel createNodeModel() {
-			// TODO Auto-generated method stub
 			return null;
 		}
 
 		@Override
 		protected int getNrNodeViews() {
-			// TODO Auto-generated method stub
 			return 0;
 		}
 
 		@Override
 		public NodeView<NodeModel> createNodeView(int viewIndex, NodeModel nodeModel) {
-			// TODO Auto-generated method stub
 			return null;
 		}
 
 		@Override
 		protected boolean hasDialog() {
-			// TODO Auto-generated method stub
 			return false;
 		}
 
 		@Override
 		protected NodeDialogPane createNodeDialogPane() {
-			// TODO Auto-generated method stub
 			return null;
 		}
 
 		@Override
 		public KaiNodeInterface createKaiNodeInterface() {
-			// TODO Auto-generated method stub
 			return null;
 		}
 
 		@Override
 		public NodeDialog createNodeDialog() {
-			// TODO Auto-generated method stub
 			return null;
 		}
 

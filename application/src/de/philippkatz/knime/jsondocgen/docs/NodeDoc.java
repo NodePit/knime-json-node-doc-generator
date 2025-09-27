@@ -121,10 +121,12 @@ public final class NodeDoc extends AbstractDoc {
 			this.hasKaiInterface = hasKaiInterface;
 			return this;
 		}
+		/** @since v1.15 */
 		public NodeDocBuilder setKeywords(List<String> keywords) {
 			this.keywords = keywords;
 			return this;
 		}
+		/** @since v1.15 */
 		public NodeDocBuilder setSinceVersion(String sinceVersion) {
 			this.sinceVersion = sinceVersion;
 			return this;

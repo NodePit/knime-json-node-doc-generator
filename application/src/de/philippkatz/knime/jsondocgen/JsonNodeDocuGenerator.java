@@ -484,7 +484,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 			builder.setSinceVersion(nodeDescription.getSinceVersion().map(v -> v.toString()).orElse(null));
 
 			builder.setHasModernDialog(hasModernDialog(factory));
-			// since KNIME 5.5 (?)
+			// since KNIME 5.5; https://github.com/knime/knime-core-ui/commit/8769e99ab4df0a435fb90936d664fdc6c6ac2b6d
 			builder.setHasKaiInterface(factory instanceof KaiNodeInterfaceFactory);
 
 			if (deprecated) {
