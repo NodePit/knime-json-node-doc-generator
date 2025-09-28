@@ -11,7 +11,7 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeView;
 import org.knime.core.node.context.NodeCreationConfiguration;
 
-public class JsonNodeDocuGeneratorTest_ConfigurableNodeFactory {
+public class JsonNodeDocuGeneratorTest_ConfigurableNodeFactory_Test {
 
 	private static final class ConfigurableStubNodeFactory extends ConfigurableNodeFactory<NodeModel> {
 
