@@ -269,7 +269,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 			// recursively generate the node reference and the node description
 			// pages
-			generate(m_directory, root, null, rootCategoryDoc);
+			generate(root, null, rootCategoryDoc);
 
 			CategoryDoc rootCategory = rootCategoryDoc.build();
 			String resultJson = rootCategory.toJson();
@@ -410,7 +410,6 @@ public class JsonNodeDocuGenerator implements IApplication {
 	/**
 	 * Recursively generates the nodes description documents and the menu entries.
 	 *
-	 * @param directory
 	 * @param current
 	 * @param parent
 	 *            parent repository object as some nodes pointing to "frequently
@@ -424,7 +423,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 	 *         been skipped
 	 */
 	@SuppressWarnings({ "restriction", "unchecked" })
-	private boolean generate(final File directory, final IRepositoryObject current, final IRepositoryObject parent,
+	private boolean generate(final IRepositoryObject current, final IRepositoryObject parent,
 			CategoryDocBuilder parentCategory) throws TransformerException, Exception {
 
 		if (current instanceof NodeTemplate nodeTemplate) {
@@ -518,7 +517,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 			boolean hasChildren = false;
 			for (IRepositoryObject repoObj : repoObjs) {
-				hasChildren = hasChildren | generate(directory, repoObj, current, newCategory);
+				hasChildren = hasChildren | generate(repoObj, current, newCategory);
 			}
 
 			if (hasChildren && current instanceof Category) {
