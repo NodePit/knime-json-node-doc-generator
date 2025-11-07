@@ -278,11 +278,11 @@ public class JsonNodeDocuGenerator implements IApplication {
 			}
 			m_catPath = m_catPath.replaceAll("/", ".");
 
-			var hiddenNodeFactoryIds = new HashSet<String>();
+			var hiddenNodeFactoryIds = Collections.<String>emptySet();
 
 			// add “hidden” nodes to the root
 			if (m_includeHiddenNodes) {
-				addHiddenNodes(root, hiddenNodeFactoryIds);
+				hiddenNodeFactoryIds = addHiddenNodes(root);
 			}
 
 			// recursively generate the node reference and the node description
@@ -350,8 +350,8 @@ public class JsonNodeDocuGenerator implements IApplication {
 	}
 
 	@SuppressWarnings({ "removal", "unchecked" })
-	private static void addHiddenNodes(IRepositoryObject root, HashSet<String> hiddenNodeFactoryIds)
-			throws InvalidNodeFactoryExtensionException {
+	private static Set<String> addHiddenNodes(IRepositoryObject root) throws InvalidNodeFactoryExtensionException {
+		Set<String> hiddenNodeFactoryIds = new HashSet<String>();
 		for (var nodeFactoryExtension : NodeFactoryExtensionManager.getInstance().getNodeFactoryExtensions()) {
 			if (nodeFactoryExtension.isHidden()) {
 				var factory = nodeFactoryExtension.getFactory();
@@ -367,6 +367,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 				hiddenNodeFactoryIds.add(factory.getFactoryId());
 			}
 		}
+		return hiddenNodeFactoryIds;
 	}
 
 	/**
