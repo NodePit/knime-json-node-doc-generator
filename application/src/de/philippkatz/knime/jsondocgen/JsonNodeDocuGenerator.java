@@ -455,7 +455,8 @@ public class JsonNodeDocuGenerator implements IApplication {
 	 *            used"-repository object as a parent
 	 * @param parentCategory
 	 *            The parent category where to insert the JSON entry.
-	 * @param hiddenNodeFactoryIds 
+	 * @param hiddenNodeFactoryIds
+	 *            Node factory IDs which are marked as “hidden” (for setting the hidden flag.)
 	 * @throws Exception
 	 * @throws TransformerException
 	 *
