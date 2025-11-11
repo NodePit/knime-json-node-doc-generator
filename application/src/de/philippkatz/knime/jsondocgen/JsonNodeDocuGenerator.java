@@ -82,6 +82,8 @@ import org.knime.core.node.context.NodeCreationConfiguration;
 import org.knime.core.node.context.ports.ConfigurablePortGroup;
 import org.knime.core.node.context.ports.ModifiablePortsConfiguration;
 import org.knime.core.node.context.ports.PortGroupConfiguration;
+import org.knime.core.node.extension.InvalidNodeFactoryExtensionException;
+import org.knime.core.node.extension.NodeFactoryExtensionManager;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
@@ -92,6 +94,7 @@ import org.knime.core.webui.node.dialog.NodeDialogFactory;
 import org.knime.core.webui.node.dialog.kai.KaiNodeInterfaceFactory;
 import org.knime.workbench.repository.RepositoryManager;
 import org.knime.workbench.repository.model.Category;
+import org.knime.workbench.repository.model.DefaultNodeTemplate;
 import org.knime.workbench.repository.model.IContainerObject;
 import org.knime.workbench.repository.model.IRepositoryObject;
 import org.knime.workbench.repository.model.NodeTemplate;
@@ -129,6 +132,8 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 	private static final String INCLUDE_DEPRECATED_ARG = "-includeDeprecated";
 
+	private static final String INCLUDE_HIDDEN_NODES_ARG = "-includeHidden";
+
 	private static final String SKIP_NODE_DOCUMENTATION = "-skipNodeDocumentation";
 
 	private static final String SKIP_PORT_DOCUMENTATION = "-skipPortDocumentation";
@@ -151,6 +156,8 @@ public class JsonNodeDocuGenerator implements IApplication {
 				+ " category-path (e.g. /community) : Only nodes within the specified category path will be considered. If not specified '/' is used.");
 		System.err.println(
 				"\t" + INCLUDE_DEPRECATED_ARG + " : Include nodes marked as 'deprecated' in the extension point.");
+		System.err.println(
+				"\t" + INCLUDE_HIDDEN_NODES_ARG + " : Include nodes marked as 'hidden' in the extension point.");
 		System.err.println("\t" + SKIP_NODE_DOCUMENTATION + " : Skip generating node documentation");
 		System.err.println("\t" + SKIP_PORT_DOCUMENTATION + " : Skip generating port documentation");
 		System.err.println("\t" + SKIP_SPLASH_ICONS + " : Skip extracting splash screen icons");
@@ -165,6 +172,8 @@ public class JsonNodeDocuGenerator implements IApplication {
 	private String m_catPath = "/";
 
 	private boolean m_includeDeprecated = false;
+	
+	private boolean m_includeHiddenNodes = false;
 
 	private boolean m_skipNodeDocumentation = false;
 
@@ -199,6 +208,8 @@ public class JsonNodeDocuGenerator implements IApplication {
 					m_pluginIds.add(args[i + 1]);
 				} else if (args[i].equals(INCLUDE_DEPRECATED_ARG)) {
 					m_includeDeprecated = true;
+				} else if (args[i].equals(INCLUDE_HIDDEN_NODES_ARG)) {
+					m_includeHiddenNodes = true;
 				} else if (args[i].equals(SKIP_NODE_DOCUMENTATION)) {
 					m_skipNodeDocumentation = true;
 				} else if (args[i].equals(SKIP_PORT_DOCUMENTATION)) {
@@ -267,9 +278,16 @@ public class JsonNodeDocuGenerator implements IApplication {
 			}
 			m_catPath = m_catPath.replaceAll("/", ".");
 
+			var hiddenNodeFactoryIds = Collections.<String>emptySet();
+
+			// add “hidden” nodes to the root
+			if (m_includeHiddenNodes) {
+				hiddenNodeFactoryIds = addHiddenNodes(root);
+			}
+
 			// recursively generate the node reference and the node description
 			// pages
-			generate(m_directory, root, null, rootCategoryDoc);
+			generate(root, null, rootCategoryDoc, hiddenNodeFactoryIds);
 
 			CategoryDoc rootCategory = rootCategoryDoc.build();
 			String resultJson = rootCategory.toJson();
@@ -329,6 +347,27 @@ public class JsonNodeDocuGenerator implements IApplication {
 			LOGGER.info("Writing migrations to " + migrationsResultFile);
 			Files.writeString(migrationsResultFile.toPath(), Utils.toJson(migrationRuleDocs));
 		}
+	}
+
+	@SuppressWarnings({ "removal", "unchecked" })
+	private static Set<String> addHiddenNodes(IRepositoryObject root) throws InvalidNodeFactoryExtensionException {
+		Set<String> hiddenNodeFactoryIds = new HashSet<String>();
+		for (var nodeFactoryExtension : NodeFactoryExtensionManager.getInstance().getNodeFactoryExtensions()) {
+			if (nodeFactoryExtension.isHidden()) {
+				var factory = nodeFactoryExtension.getFactory();
+				LOGGER.info("Add hidden node " + factory.getFactoryId());
+				var pluginID = nodeFactoryExtension.getPlugInSymbolicName();
+				var categoryPath = nodeFactoryExtension.getCategoryPath();
+				var node = new DefaultNodeTemplate((Class<NodeFactory<? extends NodeModel>>) factory.getClass(),
+						factory.getNodeName(), pluginID, categoryPath, factory.getType());
+				node.setAfterID(nodeFactoryExtension.getAfterID());
+				node.setDeprecated(nodeFactoryExtension.isDeprecated());
+				var parentContainer = ((Root) root).findContainer(node.getCategoryPath());
+				parentContainer.addChild(node);
+				hiddenNodeFactoryIds.add(factory.getFactoryId());
+			}
+		}
+		return hiddenNodeFactoryIds;
 	}
 
 	/**
@@ -410,13 +449,14 @@ public class JsonNodeDocuGenerator implements IApplication {
 	/**
 	 * Recursively generates the nodes description documents and the menu entries.
 	 *
-	 * @param directory
 	 * @param current
 	 * @param parent
 	 *            parent repository object as some nodes pointing to "frequently
 	 *            used"-repository object as a parent
 	 * @param parentCategory
 	 *            The parent category where to insert the JSON entry.
+	 * @param hiddenNodeFactoryIds
+	 *            Node factory IDs which are marked as “hidden” (for setting the hidden flag.)
 	 * @throws Exception
 	 * @throws TransformerException
 	 *
@@ -424,8 +464,8 @@ public class JsonNodeDocuGenerator implements IApplication {
 	 *         been skipped
 	 */
 	@SuppressWarnings({ "restriction", "unchecked" })
-	private boolean generate(final File directory, final IRepositoryObject current, final IRepositoryObject parent,
-			CategoryDocBuilder parentCategory) throws TransformerException, Exception {
+	private boolean generate(final IRepositoryObject current, final IRepositoryObject parent,
+			CategoryDocBuilder parentCategory, Set<String> hiddenNodeFactoryIds) throws TransformerException, Exception {
 
 		if (current instanceof NodeTemplate nodeTemplate) {
 
@@ -492,6 +532,9 @@ public class JsonNodeDocuGenerator implements IApplication {
 				// so, do not overwrite with false, if already set to true
 				builder.setDeprecated(true);
 			}
+
+			builder.setHidden(hiddenNodeFactoryIds.contains(current.getID()));
+
 			if ((!deprecated || m_includeDeprecated)) {
 				parentCategory.addNode(builder.build());
 			}
@@ -518,7 +561,7 @@ public class JsonNodeDocuGenerator implements IApplication {
 
 			boolean hasChildren = false;
 			for (IRepositoryObject repoObj : repoObjs) {
-				hasChildren = hasChildren | generate(directory, repoObj, current, newCategory);
+				hasChildren = hasChildren | generate(repoObj, current, newCategory, hiddenNodeFactoryIds);
 			}
 
 			if (hasChildren && current instanceof Category) {

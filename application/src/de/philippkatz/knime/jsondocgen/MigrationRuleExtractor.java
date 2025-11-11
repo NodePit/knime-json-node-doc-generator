@@ -39,6 +39,7 @@ public class MigrationRuleExtractor {
 		// they replaced this in 5.2 but of course the “get all” is not accessible -
 		// facepalm; in case it gets removed, we'll need to build this ourselves or get
 		// it from the “generate node documenation” phase instead
+		@SuppressWarnings({ "removal" })
 		var nodeFactoryExtensions = NodeFactoryExtensionManager.getInstance().getNodeFactoryExtensions();
 
 		LOGGER.info(String.format("Generating %s migration rules", migrationRules.size()));
