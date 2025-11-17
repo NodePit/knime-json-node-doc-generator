@@ -59,5 +59,9 @@ public final class CategoryDoc extends AbstractDoc {
 		}
 		return result;
 	}
+	
+	public List<NodeDoc> getNodes() {
+		return nodes;
+	}
 
 }
