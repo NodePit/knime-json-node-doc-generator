@@ -21,8 +21,11 @@ jobs:
           path: ~/.m2
           key: 'm2-cache'
 
+      - name: Install Xvfb
+        run: sudo apt-get update && sudo apt-get install -y xvfb libgtk-3-0
+
       - name: Build
-        run: mvn -V -B clean install
+        run: xvfb-run -a mvn -V -B clean install
 
       - name: Publish to NodePit
         # https://stackoverflow.com/questions/58139406/only-run-job-on-specific-branch-with-github-actions
