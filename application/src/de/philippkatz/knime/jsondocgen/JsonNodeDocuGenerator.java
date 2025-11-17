@@ -464,8 +464,9 @@ public class JsonNodeDocuGenerator implements IApplication {
 	 *         been skipped
 	 */
 	@SuppressWarnings({ "restriction", "unchecked" })
-	private boolean generate(final IRepositoryObject current, final IRepositoryObject parent,
-			CategoryDocBuilder parentCategory, Set<String> hiddenNodeFactoryIds) throws TransformerException, Exception {
+	/* package */ boolean generate(final IRepositoryObject current, final IRepositoryObject parent,
+			CategoryDocBuilder parentCategory, Set<String> hiddenNodeFactoryIds)
+			throws TransformerException, Exception {
 
 		if (current instanceof NodeTemplate nodeTemplate) {
 
@@ -514,14 +515,14 @@ public class JsonNodeDocuGenerator implements IApplication {
 				List<DynamicPortGroup> dynamicOutPorts = getDynamicPorts(factory, PortDirection.Out);
 				builder.setDynamicInPorts(mergeDynamicPortInfo(builder.build().dynamicInPorts, dynamicInPorts, current.getID()));
 				builder.setDynamicOutPorts(mergeDynamicPortInfo(builder.build().dynamicOutPorts, dynamicOutPorts, current.getID()));
+
+				Node node = new Node((NodeFactory<NodeModel>) factory);
+				var nodeDescription = node.invokeGetNodeDescription();
+				builder.setKeywords(Arrays.asList(nodeDescription.getKeywords()));
+				builder.setSinceVersion(nodeDescription.getSinceVersion().map(v -> v.toString()).orElse(null));
 			} catch (Throwable t) {
 				LOGGER.warn(String.format("Could not create NodeModel for %s", factory.getClass().getName()), t);
 			}
-			
-			Node node = new Node((NodeFactory<NodeModel>) factory);
-			var nodeDescription = node.invokeGetNodeDescription();
-			builder.setKeywords(Arrays.asList(nodeDescription.getKeywords()));
-			builder.setSinceVersion(nodeDescription.getSinceVersion().map(v -> v.toString()).orElse(null));
 
 			builder.setHasModernDialog(hasModernDialog(factory));
 			// since KNIME 5.5; https://github.com/knime/knime-core-ui/commit/8769e99ab4df0a435fb90936d664fdc6c6ac2b6d
