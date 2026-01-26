@@ -350,21 +350,25 @@ public class JsonNodeDocuGenerator implements IApplication {
 	}
 
 	@SuppressWarnings({ "removal", "unchecked" })
-	private static Set<String> addHiddenNodes(IRepositoryObject root) throws InvalidNodeFactoryExtensionException {
+	private static Set<String> addHiddenNodes(IRepositoryObject root) {
 		Set<String> hiddenNodeFactoryIds = new HashSet<String>();
 		for (var nodeFactoryExtension : NodeFactoryExtensionManager.getInstance().getNodeFactoryExtensions()) {
 			if (nodeFactoryExtension.isHidden()) {
-				var factory = nodeFactoryExtension.getFactory();
-				LOGGER.info("Add hidden node " + factory.getFactoryId());
-				var pluginID = nodeFactoryExtension.getPlugInSymbolicName();
-				var categoryPath = nodeFactoryExtension.getCategoryPath();
-				var node = new DefaultNodeTemplate((Class<NodeFactory<? extends NodeModel>>) factory.getClass(),
-						factory.getNodeName(), pluginID, categoryPath, factory.getType());
-				node.setAfterID(nodeFactoryExtension.getAfterID());
-				node.setDeprecated(nodeFactoryExtension.isDeprecated());
-				var parentContainer = ((Root) root).findContainer(node.getCategoryPath());
-				parentContainer.addChild(node);
-				hiddenNodeFactoryIds.add(factory.getFactoryId());
+				try {
+					var factory = nodeFactoryExtension.getFactory();
+					LOGGER.info("Add hidden node " + factory.getFactoryId());
+					var pluginID = nodeFactoryExtension.getPlugInSymbolicName();
+					var categoryPath = nodeFactoryExtension.getCategoryPath();
+					var node = new DefaultNodeTemplate((Class<NodeFactory<? extends NodeModel>>) factory.getClass(),
+							factory.getNodeName(), pluginID, categoryPath, factory.getType());
+					node.setAfterID(nodeFactoryExtension.getAfterID());
+					node.setDeprecated(nodeFactoryExtension.isDeprecated());
+					var parentContainer = ((Root) root).findContainer(node.getCategoryPath());
+					parentContainer.addChild(node);
+					hiddenNodeFactoryIds.add(factory.getFactoryId());
+				} catch (InvalidNodeFactoryExtensionException e) {
+					LOGGER.warn(String.format("Could not process hidden node for %s", nodeFactoryExtension), e);
+				}
 			}
 		}
 		return hiddenNodeFactoryIds;
