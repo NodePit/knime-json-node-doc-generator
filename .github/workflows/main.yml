@@ -11,7 +11,7 @@ jobs:
 
       - uses: s4u/setup-maven-action@v1.18.0
         with:
-          java-version: '17'
+          java-version: '21'
           java-distribution: temurin
 
       # https://docs.github.com/en/actions/guides/caching-dependencies-to-speed-up-workflows
